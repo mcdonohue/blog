@@ -1,0 +1,71 @@
+---
+title: "Covariates and Power"
+date: "2013-05-14"
+categories: [covariates, power, simulation]
+---
+
+We run some simple simulations to demonstrate the effect of covariates on power.
+
+```{r, echo = FALSE, results = 'hide'}
+library(ggplot2)
+
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, fig.width=1.7*7, fig.height=7, crop=TRUE,
+  tidy = FALSE, comment = NA)
+
+theme_set(theme_bw(base_size=12))
+# The palette with black:
+cbbPalette <- c("#0072B2", "#a21933", "#CC79A7", "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00")
+dxpal <- c("#2b8cbe", "#fc8d59","#e34a33", "#fdcc8a", "#74a9cf")
+Palette0 <- Palette <- dxpal
+scale_colour_discrete <- function(...) scale_colour_manual(..., values=cbbPalette)
+scale_fill_discrete <- function(...) scale_fill_manual(..., values=cbbPalette)
+```
+
+# Example: Binary covariate associated with outcome
+
+```{r, plot1}
+mean_response <- expand.grid(treatment = c('placebo', 'active'),
+                         gender = c('male', 'female'))
+mean_response$mean_response <- ifelse(mean_response$treatment == 'active', 0.75, 0.25)
+mean_response$mean_response <- mean_response$mean_response + ifelse(mean_response$gender == 'female', 0.25, 0)
+ggplot(mean_response, aes(treatment, mean_response, fill = gender)) + 
+  geom_bar(position = 'dodge', stat = 'identity') +
+  ggtitle("Assumed mean response pattern")
+```
+
+```{r, example1}
+set.seed(20130514)
+nobs <- 120
+sim_data <- cbind(mean_response, data.frame(id = 1:nobs))
+sim_data$noise <- rnorm(n=nobs)
+sim_data$Y <- with(sim_data, mean_response + noise)
+t.test(Y~treatment, data = sim_data)
+summary(lm(Y~treatment + gender, data = sim_data))
+```
+
+```{r, boxplot1}
+ggplot(sim_data, aes(treatment, Y, fill = gender)) + 
+  geom_boxplot(position = 'dodge') +
+  ggtitle("Example simulated dataset")
+```
+
+```{r, simulation1}
+set.seed(20130514)
+nsim <- 10000
+t_test_result <- lm_result <- matrix(NA, nsim, 2)
+for(i in 1:nsim){
+  sim_data$noise <- rnorm(n=nobs)
+  sim_data$Y <- with(sim_data, mean_response + noise)
+  tt1 <- t.test(Y~treatment, data = sim_data)
+  lm1 <- summary(lm(Y~treatment + gender, data = sim_data))
+  t_test_result[i, ] <- c(tt1$estimate %*% c(-1,1), tt1$p.value)
+  lm_result[i, ] <- lm1$coef['treatmentactive', c('Estimate', 'Pr(>|t|)')]
+}
+```
+
+
+S=10,000 Simulations     |  Simulated Power                           |  Average treatment effect
+-------------------------|--------------------------------------------|---------------------------
+t-test                   |  `r sum(t_test_result[,2] < 0.05)/nsim*100`|`r mean(t_test_result[,1])`
+linear model with gender |  `r sum(lm_result[,2] < 0.05)/nsim*100`    |`r mean(lm_result[,1])`

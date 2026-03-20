@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: docs
+  
+website:
+  description: "An Alzheimer's Disease biostatistics blog built with Quarto"
+  site-url: https://mcdonohue.github.io/blog/
+  title: "MC Donohue"
+  navbar:
+    background: primary
+    search: true
+    left:
+      - text: "-"
+        href: index.qmd
+format:
+  html:
+    theme:
+      - flatly
+      - brand
+    css: styles.css

@@ -1,0 +1,12 @@
+---
+title: Cross-Validation of Optimized Composites for Preclinical Alzheimer’s
+date: "2016-07-25"
+categories: [AAIC2016, composites, cross-validation, preclincal AD]
+summary: Cross-validating optimized cognitive composites.
+---
+
+## Slides and poster from AAIC 2016, Toronto
+
+[Slides from PIA Day at AAIC 2016: Clinical Trials Advancement and Methods](AAIC_PIA_2016_composite_cv.pdf)
+
+[Poster P3-034](AAIC_poster_2016.pdf)

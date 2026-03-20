@@ -1,0 +1,100 @@
+---
+title: "GLS, MMRM, and Missing Data"
+date: "2013-05-06"
+categories: [GLS, MMRM, mixed-effects, lme, nlme, R]
+summary: Fitting MMRM in R with missing data.
+---
+
+# The issue
+
+The `gls` routine in the `nlme` package is sensitive to the data order when using `corCompSymm`, particularly when data is missing. This is alluded to in the `corCompSymm` documentation. Below are some examples. 
+
+## No missingness
+
+When there is no missingness, there is no problem provided the data is sorted by time:
+
+```{r, echo = FALSE, results = 'hide'}
+library(ggplot2)
+
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  fig.width=1.7*7, fig.height=7, crop=TRUE,
+  tidy = FALSE, comment = NA, cache = FALSE)
+
+theme_set(theme_bw(base_size=12))
+# The palette with black:
+cbbPalette <- c("#0072B2", "#a21933", "#CC79A7", "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00")
+dxpal <- c("#2b8cbe", "#fc8d59","#e34a33", "#fdcc8a", "#74a9cf")
+Palette0 <- Palette <- dxpal
+scale_colour_discrete <- function(...) scale_colour_manual(..., values=cbbPalette)
+scale_fill_discrete <- function(...) scale_fill_manual(..., values=cbbPalette)
+```
+
+```{r}
+library(nlme)
+set.seed(20130506)
+fm1Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont,
+  correlation = corSymm(form = ~ 1 | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm1Orth.gls)$tTable
+
+fm2Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont[nrow(Orthodont):1, ], # reverse order
+  correlation = corSymm(form = ~ 1 | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm2Orth.gls)$tTable # same as sorted
+```
+
+But if the data is not sorted by time, we get inconsistent results. In fact, here the estimation does not converge:
+
+```{r, eval = FALSE}
+fm3Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont[sample(1:nrow(Orthodont), replace = TRUE), ],
+  correlation = corSymm(form = ~ 1 | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+```
+
+## Missingness
+When there is missingness, sorting does not help:
+```{r}
+# Generate some missingness
+Orthodont$missing <- sample(c(TRUE, FALSE), 
+  size = nrow(Orthodont), prob = c(0.2, 0.8), 
+  replace = TRUE)
+
+fm4Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont, subset = !missing,
+  correlation = corSymm(form = ~ 1 | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm4Orth.gls)$tTable
+
+fm5Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont[nrow(Orthodont):1, ], # reverse order
+  subset = !missing,
+  correlation = corSymm(form = ~ 1 | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm5Orth.gls)$tTable
+```
+
+# The fix
+By default, corSymm(form = ~ 1 | Subject) uses the order of observations to estimate the correlation components. In this case, the (i,j) component of the correlation matrix represents the correlation between the ith and jth observation. If instead we want the correlation between the ith and jth time point to be represented, we need to use corSymm(form = ~ t | Subject), where t are the consecutive integers indexing time.
+
+```{r}
+Orthodont$t <- as.numeric(factor(Orthodont$age, levels = c(8, 10, 12, 14)))
+with(Orthodont, table(t, age))
+fm6Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont, subset = !missing,
+  correlation = corSymm(form = ~ t | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm6Orth.gls)$tTable
+
+fm7Orth.gls <- gls( distance ~ Sex * I(age - 11), 
+  Orthodont[nrow(Orthodont):1, ], 
+  subset = !missing,
+  correlation = corSymm(form = ~ t | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fm7Orth.gls)$tTable
+```
+
+Note this is not an issue with compound symmetry structure, corCompSymm, because the correlation parameters are exchangeable with respect to time. 

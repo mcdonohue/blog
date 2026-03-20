@@ -1,0 +1,128 @@
+---
+title: GLS, MMRM, and Power
+date: "2014-04-15"
+categories: [mixed-effects, MMRM, gls, lme, nlme, R, power, simulation]
+summary: Analytic and simulated power for MMRM with missing data.
+---
+# Power for MMRM
+
+We use the power calculation formula of [Lu, Luo and Chen (2008)](http://dx.doi.org/10.2202/1557-4679.1098) for Mixed Models of Repeated Measures, which accomodates general missing data patterns. This formula is implemented in the [longpower](http://cran.r-project.org/web/packages/longpower/index.html) package. We also verify the formula with a simple simulation.
+
+## Load packages
+
+```{r library, results='hide', message=FALSE}
+library(longpower)
+library(nlme)
+library(mvtnorm)
+library(parallel)
+library(ggplot2)
+library(contrast)
+```
+
+```{r, results='hide', echo=FALSE}
+knitr::opts_chunk$set(fig.width=1.7*7, fig.height=7, crop=TRUE)
+theme_set(theme_bw(base_size=12))
+# The palette with black:
+cbbPalette <- c("#0072B2", "#a21933", "#CC79A7", "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00")
+dxpal <- c("#2b8cbe", "#fc8d59","#e34a33", "#fdcc8a", "#74a9cf")
+Palette0 <- Palette <- dxpal
+scale_colour_discrete <- function(...) scale_colour_manual(..., values=cbbPalette)
+scale_fill_discrete <- function(...) scale_fill_manual(..., values=cbbPalette)
+```
+
+## Simulation settings
+```{r sim_settings}
+gls_sigma <- 2
+gls_weights <- c(1, 1.5, 1.75, 2.0)
+placebo_mean <- c(0, 0, 0, 0)
+active_mean <- c(0, 1, 1.5, 1.8)
+retention <- c(1, 0.9, 0.8, 0.7)
+# compound symmetric R
+R <- matrix(0.5, nrow = 4, ncol = 4)
+diag(R) <- 1
+N <- 200
+```
+
+## Analytic calculations
+```{r calcs}
+power.mmrm(power=0.80, ra = retention, Ra=R, N=N, sigmaa = gls_sigma*gls_weights[4])
+power.t.test(power=0.80, n = N/2*retention[4], sd = gls_sigma*gls_weights[4])
+```
+
+The t-test delta is larger, which is expect given the conservative handling of the assumed retention rate. The MMRM makes use of partial informatin from dropouts.
+
+## Set up data for simulation
+
+```{r, sim_data_setup}
+dd0 <- expand.grid(time = as.factor(1:4), id = 1:N)
+dd0$Time <- as.numeric(dd0$time)
+dd0$trt <- ifelse(dd0$id <= N/2, 0, 1)
+dd0 <- as.data.frame(model.matrix(~ -1+id+trt*time+Time, data = dd0))
+dd0[,'trt:time1'] <- with(dd0, trt*time1)
+dd0$Trt <- as.factor(dd0$trt)
+dd0$time <- as.factor(dd0$Time)
+dd0$Y0[dd0$trt==1] <- as.matrix(subset(dd0, trt==1, c('trt:time1', 'trt:time2', 
+  'trt:time3', 'trt:time4'))) %*% active_mean
+dd0$Y0[dd0$trt==0] <- as.matrix(subset(dd0, trt==0, c('time1', 'time2', 
+  'time3', 'time4'))) %*% placebo_mean
+ggplot(dd0, aes(x=Time, y=Y0, color=Trt)) + geom_line()
+
+set.seed(20130318)
+dd1 <- merge(dd0, data.frame(id = 1:N, drop = sample(1:5, N, replace=TRUE, p=c(0,0.1,0.1,0.1,0.7))))
+dd1$e <- as.numeric(t(rmvnorm(n=N, mean=rep(0,4), sigma=gls_sigma^2*diag(gls_weights)%*%R%*%diag(gls_weights))))
+dd1$Y <- with(dd1, Y0 + e)
+dd1 <- subset(dd1, Time < drop)
+ggplot(dd1, aes(x=Time, y=Y, color=Trt, group = id)) + geom_line()
+
+fit0 <- gls(Y~-1+(time1+time2+time3+time4)+(time1+time2+time3+time4):trt, 
+    correlation = corCompSymm(form = ~ Time | id),
+		weights = varIdent(form = ~ 1 | Time),
+		data=dd1)
+summary(fit0)$tTable
+
+fit1 <- gls(Y~-1+time*Trt, 
+  correlation = corCompSymm(form = ~ Time | id),
+	weights = varIdent(form = ~ 1 | Time),
+	data=dd1)
+
+(ctrast <- contrast(fit1, 
+  list(time=levels(dd1$time), Trt=levels(dd1$Trt)[2]),
+  list(time=levels(dd1$time), Trt=levels(dd1$Trt)[1])))
+
+newdat <- rbind(
+  with(contrast(fit1, list(time=levels(dd1$time), Trt=levels(dd1$Trt)[1])),
+       data.frame(time = time, Trt = Trt, Estimate = Contrast, SE = SE,
+                  Lower = Lower, Upper = Upper, 't-value' = testStat, 'p-value' = Pvalue)
+       ),
+  with(contrast(fit1, list(time=levels(dd1$time), Trt=levels(dd1$Trt)[2])),
+       data.frame(time = time, Trt = Trt, Estimate = Contrast, SE = SE,
+                  Lower = Lower, Upper = Upper, 't-value' = testStat, 'p-value' = Pvalue)
+       )
+  )
+newdat$Time <- as.numeric(newdat$time)
+ggplot(newdat, aes(y=Estimate, x=Time, color = Trt)) +
+    geom_smooth(aes(ymax = Upper, ymin = Lower), stat = 'identity')
+```
+
+## Simulate using parallel
+
+```{r, simulations, eval=FALSE}
+set.seed(20130318)  
+results <- mclapply(1:10000, function(x){
+	dd1 <- merge(dd0, data.frame(id = 1:N, drop = sample(1:5, N, replace=TRUE, p=c(0,0.1,0.1,0.1,0.7))))
+	dd1$e <- as.numeric(t(rmvnorm(n=N, mean=rep(0,4), sigma=gls_sigma^2*diag(gls_weights)%*%R%*%diag(gls_weights))))
+	dd1$Y <- with(dd1, Y0 + e)
+	dd1 <- subset(dd1, Time < drop)
+	try(summary(update(fit0, data = dd1))$tTable['time4:trt', 'p-value'], silent = TRUE)
+}, mc.cores = 10)
+```
+
+```{r, load_results, echo=FALSE}
+load('2014-04-15-gls-mmrm-power-calcs.Rdata')
+```
+
+## Simulated power results
+
+```{r, sim_results}
+cat(sum(results < 0.05)/length(results)*100)
+```

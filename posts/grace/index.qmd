@@ -1,0 +1,171 @@
+---
+title: "grace: Growth curves by Alternating Conditional Expectation"
+date: "2012-07-18"
+categories: [disease time, grace]
+format:
+  html:
+    toc: true
+---
+
+## Estimating long-term progression from short-term data
+
+Diseases that progress over long periods of time are often studied by observing cohorts at different stages of disease for shorter periods of time. We apply an Alternating Conditional Expectation (ACE) algorithm to estimate long-term multivariate monotone growth curves from short-term observations with unknown relative observation times. The iterative algorithm is demonstrated with the movies below.
+
+Slides from AAIC 2012 are available [here](DonohueAAIC2012.pdf).
+
+An R package to fit this model is available from  <https://bitbucket.org/mdonohue/grace>
+
+```{r echo = FALSE, message=FALSE}
+# Load magick
+library(magick)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Alzheimer's Disease Data (Amyloid+)
+
+## Fit
+
+```{r am-fit}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniamylpfigs/iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Disease Time Shifts
+
+```{r am-gamma}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniamylpfigs/gamma0_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Residuals
+
+```{r am-resid}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniamylpfigs/resids_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+# Alzheimer's Disease Data (Apoe $\epsilon4+$)]
+
+## Fit
+
+```{r ap-fit}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniapoepfigs/iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Disease Time Shifts
+
+```{r ap-gamma}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniapoepfigs/gamma0_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Residuals
+
+```{r ap-resid}
+# List your PNG files (adjust the path as needed)
+files <- paste0("adniapoepfigs/resids_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+# Simulated data
+
+```{r sm-fit}
+# List your PNG files (adjust the path as needed)
+files <- paste0("iterationfigs/iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Disease Time Shifts
+
+```{r sm-gamma}
+# List your PNG files (adjust the path as needed)
+files <- paste0("iterationfigs/gamma0_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+
+## Residuals
+
+```{r sm-resid}
+# List your PNG files (adjust the path as needed)
+files <- paste0("iterationfigs/resids_iteration_", 1:8, ".png") 
+
+# Read images
+imgs <- lapply(files, image_read)
+
+# Combine into animation and set frame rate
+animation <- image_animate(image_join(imgs), fps = 1)
+
+# Display animation
+animation
+```
+

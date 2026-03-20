@@ -1,0 +1,446 @@
+---
+title: "Constrained vs unconstrained longitudinal data analysis"
+date: "2016-10-21"
+categories: [mixed-effects, lme, nlme, R, constrained longitudinal data analysis, power, simulation, pre-post]
+---
+
+# Constrained Longitudinal Data Analysis
+
+[Liang and Zeger (2000)](http://www.jstor.org/stable/25053123) describe a constrained longitudinal data analysis for comparing the time course of two randomized groups in which the model constains the two groups to share a common mean at baseline. [Lu (2010)](https://www.ncbi.nlm.nih.gov/pubmed/19764951) compared the power of this approach to a longitudinal analysis of covariance approach. We conduct a few simple simulation studies to interrogate the effect of the constraint on power to detect group differences. We do not simulate any missing data here.
+
+## Packages used
+
+```{r library, results='hide', message=FALSE}
+library(longpower)
+library(nlme)
+library(mvtnorm)
+library(parallel)
+library(ggplot2)
+library(contrast)
+library(tidyr)
+library(dplyr)
+```
+
+```{r, results='hide', echo=FALSE}
+knitr::opts_chunk$set(fig.width=1.7*7, fig.height=7, crop=TRUE)
+
+theme_set(theme_bw(base_size=12))
+# The palette with black:
+cbbPalette <- c("#0072B2", "#a21933", "#CC79A7", "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00")
+dxpal <- c("#2b8cbe", "#fc8d59","#e34a33", "#fdcc8a", "#74a9cf")
+Palette0 <- Palette <- dxpal
+scale_colour_discrete <- function(...) scale_colour_manual(..., values=cbbPalette)
+scale_fill_discrete <- function(...) scale_fill_manual(..., values=cbbPalette)
+```
+
+# Pre-post design with two repeated measures simulated via random intercept model
+
+## Simulation settings
+
+```{r sim_settings}
+sigma_residual <- 1
+sigma_random_intercept <- 1
+sigma_random_slope <- 0
+Time <- 0:1
+Beta <- c('(Intercept)'=1, time=0.5, 'trt:time'=0.4)
+Beta.null <- c('(Intercept)'=1, time=0.5, 'trt:time'=0)
+n <- 200 # per group
+N <- 2*n
+```
+
+## Analytic calculations
+
+```{r calcs}
+cov.t <- function(t1, t2, sig2.i, sig2.s, cov.s.i){
+        sig2.i + t1*t2*sig2.s + (t1+t2)*cov.s.i
+}
+m = length(Time)
+R = outer(Time, Time, function(x,y){cov.t(x,y, sigma_random_intercept^2, sigma_random_slope^2, 0)})
+R = R + diag(sigma_residual^2, m, m)
+
+power.t.test(n=n, delta=Beta['trt:time'], sd=sqrt(2*sigma_random_intercept))
+lmmpower(n=n, delta=Beta['trt:time'], t=Time, 
+  sig2.e=sigma_residual^2, sig2.s=sigma_random_slope^2, 
+  sig2.i=sigma_random_intercept, cov.s.i=0)
+diggle.linear.power(n=n, delta=Beta['trt:time'], t=Time, R=R)
+```
+
+## Set up data for simulation
+
+```{r, sim_data_setup}
+dd0 <- expand.grid(time = Time, id = 1:N)
+dd0$trt <- ifelse(dd0$id <= N/2, 0, 1)
+dd0 <- as.data.frame(model.matrix(~ id+trt*time, data = dd0))
+dd0$Trt <- as.factor(dd0$trt)
+dd0$Y0 <- as.matrix(dd0[, names(Beta)]) %*% Beta
+dd0$Y0.null <- as.matrix(dd0[, names(Beta.null)]) %*% Beta.null
+ggplot(dd0, aes(x=time, y=Y0, color=Trt)) + geom_line()
+
+set.seed(20130318)
+dd1 <- merge(dd0, data.frame(
+  id = 1:N, 
+  ran.intercept = rnorm(N, sd=sigma_random_intercept),
+  ran.slope     = rnorm(N, sd=sigma_random_slope)
+))
+dd1$e <- rnorm(nrow(dd1), sd=sigma_residual)
+
+dd1$Y <- with(dd1, Y0 + ran.intercept + ran.slope*time + e)
+ggplot(dd1, aes(x=time, y=Y, color=Trt, group = id)) + geom_line()
+
+# unconstrained:
+fit.LDA <- lme(Y~trt*time, random=~1|id, data=dd1)
+printCoefmat(summary(fit.LDA)$tTable)
+
+# constrained:
+fit.cLDA <- lme(Y~time+time:trt, random=~1|id, data=dd1)
+printCoefmat(summary(fit.cLDA)$tTable)
+
+newdat0 <- expand.grid(trt=0:1, time=Time)
+
+mods <- list(LDA = fit.LDA, cLDA=fit.cLDA)
+
+pd <- do.call(rbind, lapply(names(mods), function(name){
+  cbind(newdat0, 
+    Y=predict(mods[[name]], newdat0, level=0),
+    model = name
+  ) 
+}))
+pd$Trt <- as.factor(pd$trt)
+ggplot(pd, aes(y=Y, x=time, color = Trt)) + geom_line() + facet_grid(.~model)
+```
+
+## Simulate
+
+```{r, simulations, eval=FALSE}
+set.seed(20130318)
+results <- do.call(rbind, mclapply(1:10000, function(x){
+  dd1 <- merge(dd0, data.frame(
+    id = 1:N,
+    ran.intercept = rnorm(N, sd=sigma_random_intercept),
+    ran.slope     = rnorm(N, sd=sigma_random_slope)
+  ))
+  dd1$e <- rnorm(nrow(dd1), sd=sigma_residual)
+  dd1$Y <- with(dd1, Y0 + ran.intercept + ran.slope*time + e)
+  dd1$Y.null <- with(dd1, Y0.null + ran.intercept + ran.slope*time + e)
+  ddw <- merge(
+    subset(dd1, time==0, c('id', 'trt', 'Y', 'Y.null')),
+    subset(dd1, time==1, c('id', 'trt', 'Y', 'Y.null')),
+    by=c('id', 'trt'), suffixes=c('.0','.1')
+  )
+  ddw$d <- with(ddw, Y.1-Y.0)
+  ddw$d.null <- with(ddw, Y.null.1-Y.null.0)
+
+  prepost <- list(
+    ttest.power   = t.test(         d~trt, data=ddw)$p.value,
+    ttest.alpha   = t.test(    d.null~trt, data=ddw)$p.value,
+    ancova1.power = summary(lm(     d~Y.0 + trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+    ancova1.alpha = summary(lm(d.null~Y.null.0 + trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+    ancova2.power = summary(lm(     d~scale(Y.0)*trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+    ancova2.alpha = summary(lm(d.null~scale(Y.null.0)*trt, data=ddw))$coef['trt', 'Pr(>|t|)']
+  )
+
+  fits <- list(
+    LDA.power  = lme(     Y~time*trt, random=~1|id, data=dd1),
+    LDA.alpha  = lme(Y.null~time*trt, random=~1|id, data=dd1),
+    cLDA.power = lme(     Y~time+time:trt, random=~1|id, data=dd1),
+    cLDA.alpha = lme(Y.null~time+time:trt, random=~1|id, data=dd1)
+  )
+
+  c(unlist(prepost),
+    slopes = unlist(lapply(fits, function(fit){
+      summary(fit)$tTable['time:trt', 'p-value']
+    })),
+    contrasts = unlist(lapply(fits[1:2], function(fit){
+      pv <- try(as.numeric(contrast(fit,
+        a=list(time=Time[length(Time)], trt=0),
+        b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+      if(class(pv) == 'try-error'){
+        fit <- update(fit, random=~1|id)
+        pv <- try(as.numeric(contrast(fit,
+          a=list(time=Time[length(Time)], trt=0),
+          b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+      }
+      pv
+    }))
+  )
+}, mc.cores = 10))
+```
+
+```{r, load_results, echo=FALSE}
+load('2016-10-21-constrained-longitudinal-data-analysis-a.Rdata')
+```
+
+## Simulated power results (%)
+
+```{r, sim_results}
+knitr::kable(cbind('Pr(p<0.05)'=apply(results, 2, function(x){
+  sum(x < 0.05)/length(x)*100
+})))
+```
+
+# Four repeated measures simulated via random slope model
+## Simulation settings
+```{r}
+sigma_residual <- 1
+sigma_random_intercept <- 1
+sigma_random_slope <- 1
+Time <- 0:3
+Beta <- c('(Intercept)'=1, time=0.5, 'trt:time'=0.434)
+Beta.null <- c('(Intercept)'=1, time=0.5, 'trt:time'=0)
+n <- 100 # per group
+N <- 2*n
+```
+
+## Analytic calculations
+
+```{r}
+m = length(Time)
+R = outer(Time, Time, function(x,y){cov.t(x,y, sigma_random_intercept^2, sigma_random_slope^2, 0)})
+R = R + diag(sigma_residual^2, m, m)
+
+lmmpower(n=n, delta=Beta['trt:time'], t=Time, 
+  sig2.e=sigma_residual^2, sig2.s=sigma_random_slope^2, 
+  sig2.i=sigma_random_intercept^2, cov.s.i=0)
+```
+
+```{r}
+diggle.linear.power(n=n, delta=Beta['trt:time'], t=Time, R=R)
+```
+
+## Set up data for simulation
+
+```{r}
+dd0 <- expand.grid(time = Time, id = 1:N)
+dd0$trt <- ifelse(dd0$id <= N/2, 0, 1)
+dd0$t <- as.factor(dd0$time)
+dd0 <- as.data.frame(model.matrix(~ id+trt*time+t, data = dd0))
+dd0$t <- as.factor(dd0$time)
+dd0$Trt <- as.factor(dd0$trt)
+dd0$Y0 <- as.matrix(dd0[, names(Beta)]) %*% Beta
+dd0$Y0.null <- as.matrix(dd0[, names(Beta.null)]) %*% Beta.null
+
+ggplot(dd0, aes(x=time, y=Y0, color=Trt)) + geom_line()
+```
+
+```{r}
+set.seed(20130318)
+dd1 <- merge(dd0, data.frame(
+  id = 1:N, 
+  ran.intercept = rnorm(N, sd=sigma_random_intercept),
+  ran.slope     = rnorm(N, sd=sigma_random_slope)
+))
+dd1$e <- rnorm(nrow(dd1), sd=sigma_residual)
+
+dd1$Y <- with(dd1, Y0 + ran.intercept + ran.slope*time + e)
+ggplot(dd1, aes(x=time, y=Y, color=Trt, group = id)) + geom_line()
+```
+
+```{r}
+# unconstrained:
+fit.LDA <- lme(Y~trt*time, random=~time|id, data=dd1)
+printCoefmat(summary(fit.LDA)$tTable)
+
+# constrained:
+fit.cLDA <- lme(Y~time+time:trt, random=~time|id, data=dd1)
+printCoefmat(summary(fit.cLDA)$tTable)
+```
+
+```{r}
+newdat0 <- expand.grid(trt=0:1, time=Time)
+
+mods <- list(LDA = fit.LDA, cLDA=fit.cLDA)
+
+pd <- do.call(rbind, lapply(names(mods), function(name){
+  cbind(newdat0, 
+    Y=predict(mods[[name]], newdat0, level=0),
+    model = name
+  ) 
+}))
+pd$Trt <- as.factor(pd$trt)
+ggplot(pd, aes(y=Y, x=time, color = Trt)) + geom_line() + facet_grid(.~model)
+```
+
+## Simulate
+
+```{r, eval=FALSE}
+set.seed(20130318)
+results <- do.call(rbind, mclapply(1:10000, function(x){
+  dd1 <- merge(dd0, data.frame(
+    id = 1:N,
+    ran.intercept = rnorm(N, sd=sigma_random_intercept),
+    ran.slope     = rnorm(N, sd=sigma_random_slope)
+  ))
+  dd1$e <- rnorm(nrow(dd1), sd=sigma_residual)
+  dd1$Y <- with(dd1, Y0 + ran.intercept + ran.slope*time + e)
+  dd1$Y.null <- with(dd1, Y0.null + ran.intercept + ran.slope*time + e)
+
+  fits.cts <- list(
+    LDA.power  = lme(     Y~time*trt, random=~time|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+    LDA.alpha  = lme(Y.null~time*trt, random=~time|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+    cLDA.power = lme(     Y~time+time:trt, random=~time|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+    cLDA.alpha = lme(Y.null~time+time:trt, random=~time|id, data=dd1, control=lmeControl(returnObject=TRUE))
+  )
+
+  fits.cat <- list(
+    LDA.power  = gls(     Y~(t1+t2+t3)*trt, data=dd1,
+      correlation = corCompSymm(form = ~ time | id), weights = varIdent(form = ~ 1 | time)),
+    LDA.alpha  = gls(Y.null~(t1+t2+t3)*trt, data=dd1,
+      correlation = corCompSymm(form = ~ time | id), weights = varIdent(form = ~ 1 | time)),
+    cLDA.power = gls(     Y~t1+t2+t3+(t1+t2+t3):trt, data=dd1,
+      correlation = corCompSymm(form = ~ time | id), weights = varIdent(form = ~ 1 | time)),
+    cLDA.alpha = gls(Y.null~t1+t2+t3+(t1+t2+t3):trt, data=dd1,
+      correlation = corCompSymm(form = ~ time | id), weights = varIdent(form = ~ 1 | time))
+  )
+
+  c(slopes = unlist(lapply(fits.cts, function(fit){
+      summary(fit)$tTable['time:trt', 'p-value']
+    })),
+    contrasts.cts = unlist(lapply(fits.cts[1:2], function(fit){
+      pv <- try(as.numeric(contrast(fit,
+        a=list(time=Time[length(Time)], trt=0),
+        b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+      if(class(pv) == 'try-error'){
+        fit <- update(fit, random=~1|id)
+        pv <- try(as.numeric(contrast(fit,
+          a=list(time=Time[length(Time)], trt=0),
+          b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+      }
+      pv
+    })),
+    contrasts.cat = c(
+      unlist(lapply(fits.cat[1:2], function(fit){
+        pv <- try(as.numeric(contrast(fit,
+          a=list(t1=0, t2=0, t3=1, trt=0),
+          b=list(t1=0, t2=0, t3=1, trt=1))$Pvalue), silent = TRUE)
+        pv
+      })),
+      unlist(lapply(fits.cat[3:4], function(fit){
+        summary(fit)$tTable['t3:trt', 'p-value']
+      }))
+    )
+  )
+}, mc.cores = 10))
+```
+
+```{r, load_results_b, echo=FALSE}
+load('2016-10-21-constrained-longitudinal-data-analysis-b.Rdata')
+```
+
+## Simulated power results (%)
+```{r}
+knitr::kable(cbind('Pr(p<0.05)'=apply(results, 2, function(x){
+  sum(x < 0.05)/length(x)*100
+})))
+```
+
+# Pre-post design simulated with fixed variance of pre-post difference and various pre-post correlations
+
+## Simulation settings
+
+```{r}
+Time <- 0:1
+Beta <- c('(Intercept)'=1, time=0.0514, 'trt:time'=0.0514*0.30)
+Beta.null <- c('(Intercept)'=1, time=0.0514, 'trt:time'=0)
+corr <- c(0.2, 0.5, 0.7)
+n <- 64 # per group
+N <- 2*n
+sd_diff <- 0.0309
+```
+
+## Analytic calculations
+
+```{r}
+power.t.test(n=n, delta=Beta['trt:time'], sd=sd_diff)
+```
+
+## Set up data for simulation
+
+```{r}
+dd0 <- expand.grid(time = Time, id = 1:N)
+dd0$trt <- ifelse(dd0$id <= N/2, 0, 1)
+dd0 <- as.data.frame(model.matrix(~ id+trt*time, data = dd0))
+dd0$Trt <- as.factor(dd0$trt)
+dd0$Y0 <- as.matrix(dd0[, names(Beta)]) %*% Beta
+dd0$Y0.null <- as.matrix(dd0[, names(Beta.null)]) %*% Beta.null
+```
+
+## Simulate
+
+```{r, eval=FALSE}
+set.seed(20130318)
+results <- do.call(rbind, mclapply(1:10000, function(x){
+  ll <- lapply(corr, function(rho){
+    sd_resid <- sqrt(sd_diff^2/(2*(1-rho)))
+    cov_resid <- rho * sd_resid^2
+    resids <- gather(
+      data.frame(
+        id = 1:N,
+        rmvnorm(n=N, mean=c(0,0), sigma=matrix(c(sd_resid^2,cov_resid,cov_resid,sd_resid^2), nrow=2))), 
+      time, e, 2:3) %>% 
+      mutate(time = as.numeric(gsub('X', '', time))-1)
+    dd1 <- merge(dd0, resids, by=c('id', 'time'))
+    dd1$Y <- with(dd1, Y0 + e)
+    dd1$Y.null <- with(dd1, Y0.null + e)
+    ddw <- merge(
+      subset(dd1, time==0, c('id', 'trt', 'Y', 'Y.null')),
+      subset(dd1, time==1, c('id', 'trt', 'Y', 'Y.null')),
+      by=c('id', 'trt'), suffixes=c('.0','.1')
+    )
+    ddw$d <- with(ddw, Y.1-Y.0)
+    ddw$d.null <- with(ddw, Y.null.1-Y.null.0)
+
+    prepost <- list(
+      ttest.power   = t.test(         d~trt, data=ddw)$p.value,
+      ttest.alpha   = t.test(    d.null~trt, data=ddw)$p.value,
+      ancova1.power = summary(lm(     d~Y.0 + trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+      ancova1.alpha = summary(lm(d.null~Y.null.0 + trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+      ancova2.power = summary(lm(     d~scale(Y.0)*trt, data=ddw))$coef['trt', 'Pr(>|t|)'],
+      ancova2.alpha = summary(lm(d.null~scale(Y.null.0)*trt, data=ddw))$coef['trt', 'Pr(>|t|)']
+    )
+
+    fits <- list(
+      LDA.power  = lme(     Y~time*trt, random=~1|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+      LDA.alpha  = lme(Y.null~time*trt, random=~1|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+      cLDA.power = lme(     Y~time+time:trt, random=~1|id, data=dd1, control=lmeControl(returnObject=TRUE)),
+      cLDA.alpha = lme(Y.null~time+time:trt, random=~1|id, data=dd1, control=lmeControl(returnObject=TRUE))
+    )
+
+    c(unlist(prepost),
+      slopes = unlist(lapply(fits, function(fit){
+        summary(fit)$tTable['time:trt', 'p-value']
+      })),
+      contrasts = unlist(lapply(fits[1:2], function(fit){
+        pv <- try(as.numeric(contrast(fit,
+          a=list(time=Time[length(Time)], trt=0),
+          b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+        if(class(pv) == 'try-error'){
+          fit <- update(fit, random=~1|id)
+          pv <- try(as.numeric(contrast(fit,
+            a=list(time=Time[length(Time)], trt=0),
+            b=list(time=Time[length(Time)], trt=1))$Pvalue), silent = TRUE)
+        }
+        pv
+      }))
+    )
+  })
+  names(ll) <- corr
+  unlist(ll)
+}, mc.cores = 10))
+```
+
+```{r, load_results_c, echo=FALSE}
+load('2016-10-21-constrained-longitudinal-data-analysis-c.Rdata')
+```
+
+## Simulated power results (%)
+
+```{r}
+knitr::kable(cbind('Pr(p<0.05)'=apply(results, 2, function(x){
+  sum(x < 0.05)/length(x)*100
+})))
+```
+
+
+So the t-test power is fixed at 80% (by design), the unconstrained LDA has nearly identical power to t-test; while ANCOVA and constrained LDA have similar power (always better power than t-test, but power decreases with increasing pre-post correlation). ANCOVA2 has similar power as ANCOVA1 (not surprising since no interaction between baseline outcome and group was simulated).
+
+This confirms that the cLDA is preferred whenever we have two timepoints in a randomized study; just as ANCOVA is always preferred to t-test. Of course, cLDA has the added advantage of accommodating missing data.

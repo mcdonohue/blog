@@ -1,0 +1,55 @@
+---
+title: ""
+listing:
+  contents: posts
+  feed: true
+  sort: "date desc"
+  type: default
+  categories: true
+  sort-ui: false
+  filter-ui: false
+page-layout: full
+title-block-banner: true
+---
+
+**Michael C Donohue, PhD** 
+
+Professor, Department of Neurology
+
+Associate Director of Biostatistics  
+[USC Epstein Family Alzheimer's Therapeutic Research Institute](https://keck.usc.edu/atri/)  
+Co-Lead, Biostatistics Unit  
+[Alzheimer's Clinical Trial Consortium](https://www.actcinfo.org/)  
+Keck School of Medicine of [USC](https://usc.edu/)  
+[University of Southern California](https://usc.edu/)  
+9860 Mesa Rim Rd  
+San Diego, CA 92121  
+[mdonohue@usc.edu](mailto:mdonohue@usc.edu)
+
+![](mdonohue.jpg){width="150"}
+
+## About
+
+Michael Donohue is Professor of Neurology at the Keck School of Medicine and Associate Director of Biostatistics at the Epstein Family Alzheimer’s Therapeutic Research Institute (ATRI). He received his PhD in Mathematics from the University of California, San Diego. Dr. Donohue applies novel statistical methods to data from natural history studies and clinical trials to better understand the multivariate course of markers of Alzheimer’s progression, and design innovative clinical trials to prevent or slow the progression of disease. He has studied the risk of cognitive decline associated with elevated brain amyloid in cognitively normal individuals; and helped design the first intervention in asymptomatic Alzheimer’s, the Anti-Amyloid Treatment for Asymptomatic Alzheimer’s (the A4 Study; in collaboration with Eli Lilly), and its primary outcome measure, the Preclinical Alzheimer Cognitive Composite. He has been awarded grants to develop innovative statistical approaches for Alzheimer’s from the National Institute on Aging; the Alzheimer’s Association, Michael J. Fox Foundation, and W. Garfield Weston Foundation; and the Clinical and Translation Research Institute of the University of California, San Diego
+
+## Principal Research Interests
+
+- Modelling long-term evolution of neurodegenerative diseases
+- Semiparametric and generalized linear mixed-effects models
+- Model selection
+- Clinical trials design
+- Missing data
+- Alzheimer's Disease clinical trials
+
+## Collaborative Projects
+
+- Alzheimer's Therapeutic Research Institute ([ATRI](https://keck.usc.edu/atri/))
+- Alzheimer's Clinical Trial Consortium ([ACTC](https://www.actcinfo.org/))
+- Alzheimer's Disease Neuroimaging Initiative ([ADNI](http://adni-info.org/))
+
+## Publications
+
+See [pubmed](https://www.ncbi.nlm.nih.gov/myncbi/michael.donohue.1/bibliography/public/) for full list of publications
+
+## Posts
+
