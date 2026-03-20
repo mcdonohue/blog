@@ -13,6 +13,6 @@
 
 # Source files for blog posts
 
-See files in <https://github.com/mcdonohue/mdonohue/tree/main/posts>
+See files in <https://github.com/mcdonohue/blog/tree/main/posts/>
 
-Browse blog on <https://mcdonohue.github.io>
+Browse blog on <https://mcdonohue.github.io/blog/>
