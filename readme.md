@@ -1,10 +1,7 @@
 
 <!-- 
 
-# To build for GitHub, set:
-
-output-dir: docs
-site-url: https://mcdonohue.github.io/blog/
+# To build for GitHub:
 
 1. Edit quarto source in posts
 
@@ -12,14 +9,11 @@ site-url: https://mcdonohue.github.io/blog/
 
 3. Push to github 
 
-# To build for bitbucket, set:
-
-output-dir: docs-bitbucket
-site-url: https://mdonohue.bitbucket.io
+# To build for bitbucket:
 
 1. Edit quarto source in posts
 
-2. Render Locally: Run `quarto render` to generate the HTML files.
+2. Render Locally: Run `quarto render --output-dir docs-bitbucket --site-url https://mdonohue.bitbucket.io` to generate the HTML files.
 
 3. Copy contents of `docs-bitbucket` to mdonohue.bitbucket.org repo
 
