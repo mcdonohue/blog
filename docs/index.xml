@@ -10,7 +10,7 @@
 <atom:link href="https://mcdonohue.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>An Alzheimer&#39;s Disease biostatistics blog built with Quarto</description>
 <generator>quarto-1.8.27</generator>
-<lastBuildDate>Mon, 23 Mar 2026 07:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 24 Mar 2026 07:00:00 GMT</lastBuildDate>
 <item>
   <title>Design-induced artifacts when “disease clocks” are plugged into second-stage analyses of symptom onset</title>
   <dc:creator>Philip S. Insel</dc:creator>
@@ -33,7 +33,7 @@
 <p>In our analysis (Figure&nbsp;2), when the estimated age of %p-tau217 positivity is replaced with age at baseline minus the randomly generated time from %p-tau217 positivity, the <img src="https://latex.codecogs.com/png.latex?R%5E2"> increases from 0.57 (TIRA) or 0.39 (SILA) to 0.68 (random). This shows that the magnitude of the association in Supplementary Fig. 6 can be reproduced using a predictor that contains no biomarker information, indicating that the observed relationship is driven by the structural dependence of the outcome on the predictor, rather than by the clock-estimated time to %p-tau217 positivity.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-tira-sila" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="!h" data-fig-align="center">
+<div id="fig-tira-sila" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" data-fig-pos="!h">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tira-sila-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://mcdonohue.github.io/blog/posts/design-artifacts/fig-tira-sila-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" data-fig-pos="!h">
@@ -45,7 +45,7 @@ Figure&nbsp;1: Relationships between the predicted outcome (age of symptom onset
 </div>
 </div>
 </div>
-<div id="tbl-commonality" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[30,15,15,15,15]" data-layout-align="center">
+<div id="tbl-commonality" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-layout-align="center" data-tbl-colwidths="[30,15,15,15,15]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-commonality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: <strong>Commonality analysis results for age of symptom onset across SILA, TIRA, and a random variable.</strong> This table presents the unique and shared variance contributions for baseline age and age of %p-tau217 positivity in predicting onset age. Unique effects represent the variance accounted for by a single predictor, while common effects represent the shared variance attributed to the overlap between predictors. Total and Adjusted <img src="https://latex.codecogs.com/png.latex?R%5E2"> on the bottom row are from the linear models with both predictors. <strong>Note:</strong> Analyses are based on digitized estimates derived from figures available on Alzforum<span class="citation" data-cites="alzforum_ptau217_clock"><sup>7</sup></span> using WebPlotDigitizer.<span class="citation" data-cites="WebPlotDigitizer"><sup>9</sup></span>
@@ -66,7 +66,7 @@ Table&nbsp;1: <strong>Commonality analysis results for age of symptom onset acro
 <p>Notably, 77% of the 1,629 cognitively unimpaired individuals in this cohort remained cognitively stable throughout follow-up. While accuracy metrics can be inflated by focusing only on individuals who decline (a small minority) and ignoring the stable majority, such an approach does not reflect the clinical reality of population screening. Given the clear clinical potential of plasma measures of AD, and the availability of direct-to-consumer p-tau217 measurements, it is critical that scientific research evaluating these tools portrays an accurate representation of what these measurements can and cannot provide. Rather than assuming that all individuals are on a common declining trajectory, the latent class approach we employed explicitly estimates the probability that an individual will be a progressor.<span class="citation" data-cites="proust2017estimation"><sup>11</sup></span> It is clinically imperative to convey the degree of certainty regarding an individual’s trajectory before counseling them on their “clock” under an unsupported assumption of inevitable decline.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-supp-fig-6" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="!h" data-fig-align="center">
+<div id="fig-supp-fig-6" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center" data-fig-pos="!h">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-supp-fig-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://mcdonohue.github.io/blog/posts/design-artifacts/fig-supp-fig-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" data-fig-pos="!h">
@@ -125,7 +125,7 @@ Figure&nbsp;2: Relationships between age of symptom onset minus age of %p-tau217
 
  ]]></description>
   <guid>https://mcdonohue.github.io/blog/posts/design-artifacts/</guid>
-  <pubDate>Mon, 23 Mar 2026 07:00:00 GMT</pubDate>
+  <pubDate>Tue, 24 Mar 2026 07:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Constrained vs unconstrained longitudinal data analysis</title>
