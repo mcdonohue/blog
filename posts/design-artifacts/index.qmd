@@ -1,6 +1,6 @@
 ---
 title: "Design-induced artifacts when \"disease clocks\" are plugged into second-stage analyses of symptom onset"
-date: "2026-03-24"
+date: "2026-03-25"
 author:
   - name: Philip S. Insel
     email: philip.insel@ucsf.edu
@@ -37,7 +37,7 @@ crossref:
       latex-list-of-description: Supplementary Table
 ---
 
-Source files are aviable on [GitHub](https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts)
+Source files are available on [GitHub](https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts)
 
 Plasma markers of phosphorylated tau-217 (such as %p-tau217) have rapidly emerged as robust markers of underlying Alzheimer's Disease (AD) pathology.[@warmenhoven2025comprehensive]  Building on this excitement, recent work has focused on longitudinal measurements of plasma p-tau217, with this work suggesting significant change over time in at risk groups,[@mattsson2020longitudinal] although with milder associations with concurrent cognitive changes.[@insel2025concurrent]
 
