@@ -1,22 +1,6 @@
 ---
-title: "Design-induced artifacts when \"disease clocks\" are plugged into second-stage analyses of symptom onset"
-date: "2026-03-25"
-author:
-  - name: Philip S. Insel
-    email: philip.insel@ucsf.edu
-    correspondingauthor: true
-    affiliations:
-      - name: Department of Psychiatry and Behavioral Sciences, University of California, San Francisco
-        city: San Francisco
-        state: CA
-        id: 1
-  - name: Michael C. Donohue
-    email: mdonohue@usc.edu
-    affiliations:
-      - name: USC Epstein Family Alzheimer's Therapeutic Research Institute, University of Southern California
-        city: San Diego
-        state: CA
-        id: 2
+title: "Estimating symptom onset from a single blood test: design artifacts, not biomarker signal"
+
 prefer-html: true
 always_allow_html: true
 bibliography: references.bib
@@ -35,34 +19,58 @@ crossref:
       reference-prefix: Supplementary Table S
       space-before-numbering: false
       latex-list-of-description: Supplementary Table
+format:
+  html:
+    code-fold: true
+    toc: true
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=1in
+  latex:
+    documentclass: article
+    geometry:
+      - margin=1in
+  docx: default
 ---
 
-Source files are available on [GitHub](https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts)
+**Philip S. Insel**^1^\* and **Michael C. Donohue**^2^
 
-Preprint published on *medRxiv*. doi:[10.64898/2026.03.26.26349230](https://doi.org/10.64898/2026.03.26.26349230)
+^1^Department of Psychiatry and Behavioral Sciences, University of California, San Francisco, San Francisco, CA, USA
 
-Plasma markers of phosphorylated tau-217 (such as %p-tau217) have rapidly emerged as robust markers of underlying Alzheimer's Disease (AD) pathology.[@warmenhoven2025comprehensive]  Building on this excitement, recent work has focused on longitudinal measurements of plasma p-tau217, with this work suggesting significant change over time in at risk groups,[@mattsson2020longitudinal] although with milder associations with concurrent cognitive changes.[@insel2025concurrent]
+^2^USC Epstein Family Alzheimer's Therapeutic Research Institute, University of Southern California, San Diego, CA, USA
 
-The article by Petersen et al.[@petersen2026] expands in this direction by applying disease clock models (Sampled Iterative Local Approximation [SILA][@betthauser2022multi] and Temporal Integration of Rate Accumulation [TIRA][@schindler2021predicting]) to derive estimates of the age at plasma %p-tau217 positivity, based on estimation of group-level accumulation combined with individual level %p-tau217 magnitude. This measure of age at %p-tau217 positivity, defined as baseline age minus the estimated time from %p-tau217 positivity is then used to claim prediction of the age at onset of symptomatic (AD). We show that this apparent predictive performance is largely artifactual, arising from two structural features of the analysis: (1) restriction to individuals who progressed to symptomatic AD during limited follow-up, which induces a strong artifactual association between baseline age and age at symptom onset, and (2) the use of constructed predictors and outcomes that share age and timing components, making the resulting associations partly self-referential. More generally, this artifact arises when the outcome is constrained by an earlier time variable and the predictor contains that same or a related time component, inducing associations through shared structure rather than independent signal. Using digitized data from the published figures, we decomposed the clock-derived measure into baseline age and estimated time from plasma %p-tau217 positivity, quantified shared and unique explained variance using commonality analysis, and evaluated a null scenario by replacing the biomarker component of the clock measure with a randomly generated time from %p-tau217 positivity, drawn over the observed range. This randomization preserves the range of the predictor while removing any biomarker information, allowing the contribution of structural relationships to be assessed directly. In ADNI, baseline age alone explained substantially more variance in age at symptom onset than the reported plasma %p-tau217 clock-derived predictors ($R^2\approx0.78$ versus $0.337$ and $0.470$ for TIRA and SILA), the estimated time from %p-tau217 component contributed little additional information, and randomly generated values produced a similar associations to baseline age alone ($R^2\approx0.79$). These results indicate that the reported predictive performance of the plasma %p-tau217 clock is driven largely by structural age relationships rather than independent biomarker information. 
+\*Corresponding author: philip.insel@ucsf.edu
 
-The primary analysis links estimated age at %p-tau217 positivity to observed age at symptom onset in known progressors and forms a central results of the paper. However, this analysis evaluates when progression occurs in individuals who progress within a limited follow-up window---a substantially less clinically relevant problem than predicting onset in an all-comers population, which represents a key goal in the field. In the restricted sample, baseline age must precede age at symptom onset, and the interval between them is bounded by the observation period of the study. As a result, baseline age alone strongly predicts age at symptom onset, even in the absence of biomarker information.
+\newpage
 
-This structure carries directly into the clock-based analysis, where age at symptom onset is regressed on estimated age at %p-tau217 positivity. Because the plasma %p-tau217 clock combines baseline age with an estimated timing component, and the outcome is itself constrained by baseline age, the resulting association reflects a mixture of structural age relationships and any true biomarker signal. To separate these components, the clock can be decomposed into baseline age and estimated time from %p-tau217 positivity, and age at symptom onset modeled as a function of both terms, allowing the independent contribution of the biomarker timing component to be assessed.
+Petersen et al.[@petersen2026] report that disease-clock models applied to plasma %p-tau217 can estimate the age at symptom onset of Alzheimer's disease, concluding that "the time until onset of AD symptoms can be estimated using a single blood test within a margin of error that is acceptable for use in clinical trials," on the basis of adjusted R² values of 0.337–0.612. However, their constructed predictor, the clock-derived estimate of the age at plasma %p-tau217 positivity, combines chronological age with information from a blood test, and the reported performance is misattributed to the blood test. Using their data, we show that this performance is almost entirely driven by study design rather than biomarker signal: the blood-test component alone explains essentially none of the variance in age at symptom onset (R² = 0.01–0.02). Indeed, high R² values attributable to chronological age alone are guaranteed by the design. They are obtained even when the blood-test information is replaced with random numbers, demonstrating that the apparent performance requires no biomarker signal at all. Moreover, the clock generally performs worse than a simple model including chronological age and raw %p-tau217 directly. The conclusion that the time until AD symptoms can be estimated from a single blood test, within a margin acceptable for clinical trials, is unfounded.
 
-In their Alzforum response to this critique,[@alzforum_ptau217_clock] the authors confirmed that in ADNI, baseline age alone predicts age at symptom onset with an $R^2$ of approximately 0.78 (@fig-tira-sila, left panels). The pink regions in @fig-tira-sila depict the structural dependence that arises given that observed symptom onset occurs at most 10.4 years after baseline. In contrast to baseline age, the estimated age of %p-tau217 positivity achieves substantially lower $R^2$ values (0.337 and 0.470 for TIRA and SILA, respectively; Figure 4 in Petersen et al.[@petersen2026] and @fig-tira-sila, right panels). Thus, incorporating the biomarker-derived estimate of time from %p-tau217 positivity does not improve explained variance relative to baseline age alone and, in fact, reduces it. Consistent with this, the estimated time from %p-tau217 positivity shows little association with age at symptom onset, and adding it to baseline age does not improve model fit (@fig-tira-sila). Patterns obtained using a randomly generated time from %p-tau217 positivity, drawn uniformly over the observed range, are qualitatively similar to those obtained using the SILA and TIRA estimates (@fig-tira-sila, bottom). 
+Plasma markers of phosphorylated tau-217 (such as %p-tau217) have rapidly emerged as robust markers of underlying Alzheimer's disease (AD) pathology.[@warmenhoven2025comprehensive] Recent work has extended this to longitudinal measurements, which show p-tau217 changes over time in at-risk groups,[@mattsson2020longitudinal] and p-tau217 associations with future cognitive decline.[@insel2025concurrent] Petersen et al. build on this by applying disease-clock models (SILA[@betthauser2022multi] and TIRA[@schindler2021predicting]) to estimate each individual's age at plasma %p-tau217 positivity, defined as baseline age minus the estimated time from positivity, and then regress observed age at symptom onset on this estimate in individuals who progressed to symptomatic AD.
+
+This design produces an artifact for two reasons. First, restricting the analysis to progressors within a limited follow-up window bounds the interval between baseline age and symptom onset, so baseline age alone strongly predicts onset age even with no biomarker information. Second, the clock predictor is itself constructed from baseline age, so it shares that same age component with the outcome, making the resulting association partly self-referential. More generally, this artifact arises whenever the outcome is constrained by an earlier time variable and the predictor contains that same or a related time component, inducing associations through shared structure rather than independent signal. To separate the contribution of chronological age, which is confounded with the design artifact, from real biomarker signal, we used the data from Petersen et al. to decompose the clock into baseline age and estimated time from %p-tau217 positivity. Symptom onset was then modeled as a function of both terms. As a null comparison, we replaced the biomarker timing component with a random value over the same range. We further compared the clock against a model using baseline age and raw %p-tau217 level directly.
+
+When the clock is decomposed into baseline age and estimated time from %p-tau217 positivity, the biomarker timing term alone explained negligible variance in age at symptom onset in either cohort: adjusted R² = 0.02 (TIRA) and 0.01 (SILA) in the primary Knight ADRC cohort (@fig-tira-sila-kadrc), and essentially zero in ADNI (@suppfig-tira-sila-adni; in fact slightly negative for both methods). Baseline age alone explained far more: R² = 0.54 for both method samples in Knight ADRC, and R² = 0.71 (TIRA sample) and 0.61 (SILA sample) in ADNI. This association is imposed entirely by the study design rather than reflecting biomarker signal, as shown by the pink regions in @fig-tira-sila-kadrc: they define the region the data must occupy, given that symptom onset occurs between 5.7 years before and 16.4 years after baseline. Because onset must fall within this bounded window, baseline age alone determines age at symptom onset up to a fixed interval, forcing the strong positive association seen in the left column regardless of any biomarker information.
+
+Incorporating the timing term through the clock produced a small improvement over age alone in Knight ADRC (R² = 0.60–0.61, versus 0.54 for age alone), but this improvement was small (ΔR² = 0.07) and did not replicate in the validation cohort, indicating instability rather than robust incremental value. In ADNI, incorporating the biomarker through the clock did not add information but instead injected noise, lowering performance below age alone and below a random comparator: for TIRA, the clock explained R² = 0.34 versus 0.71 for age alone, and for SILA, R² = 0.47 versus 0.61, compared with R² = 0.56 for the random comparator.
+
 
 ```{r setup, include=FALSE}
-# rmarkdown::render('A4LEARN-Latent-Classes.qmd')
 library(tidyverse)
-library(tidyverse)
-library(fuzzyjoin)
-library(knitr)
-library(gtsummary)
-library(ggtext)
+library(broom)
 library(yhat)
 library(flextable)
-library(magrittr)
+library(knitr)
+library(ggtext)
 library(officer)
+
+source('tira-sila-helper-functions.R')
+
+# library(tidyverse)
+# library(fuzzyjoin)
+# library(gtsummary)
+# library(yhat)
+# library(magrittr)
 
 options(htmltools.dir.version = FALSE, knitr.kable.NA = '')
 
@@ -147,282 +155,255 @@ scale_fill_jama <- function(...) {
 #   scale_color_jama()
 ```
 
-```{r merge-scraped-data}
-bl_onset <- read.csv("baseline-vs-onset.csv") %>%
-  arrange(age.of.onset)
-tira0 <- read.csv("tira.csv") %>%
-  arrange(age.of.onset)
-sila0 <- read.csv("sila.csv") %>%
-  arrange(age.of.onset)
+```{r merge-provided-data, eval = FALSE}
+adni_tira <- read.csv("Petersen progressor subsets/progressors_ADNI_TIRA_anon.csv")
+adni_sila <- read.csv("Petersen progressor subsets/progressors_ADNI_SILA_anon.csv")
+kadrc_tira <- read.csv("Petersen progressor subsets/progressors_KADRC_TIRA_anon.csv")
+kadrc_sila <- read.csv("Petersen progressor subsets/progressors_KADRC_SILA_anon.csv")
 
-# bl_onset and sila have same n=22, so sort and bind_cols
-sila <- sila0 %>%
-  rename(age.of.onset.sila = age.of.onset) %>%
-  bind_cols(bl_onset) %>%
+dat <- adni_tira %>% mutate(Source = 'ADNI', Method = 'TIRA') %>%
+  bind_rows(adni_sila %>% mutate(Source = 'ADNI', Method = 'SILA')) %>%
+  bind_rows(kadrc_tira %>% mutate(Source = 'Knight ADRC', Method = 'TIRA')) %>%
+  bind_rows(kadrc_sila %>% mutate(Source = 'Knight ADRC', Method = 'SILA')) %>%
+  # ptau217_positivity_age = baseline_plasma_age - time_from_positivity
   mutate(
-    time.from.positivity = baseline.age - age.of.positivity,
-    onset_age_diff = age.of.onset.sila - age.of.onset)
-# max(sila$onset_age_diff)
+    time_from_positivity = baseline_plasma_age - ptau217_positivity_age,
+    time_from_onset = baseline_plasma_age - age_of_symptom_onset,
+    id = paste(Source, baseline_plasma_age, baseline_plasma) %>%
+      as.factor() %>% as.numeric())
 
-# bl_onset (n=22) and tira (n=20), which 2 to remove from tira?
-# cbind(tira0$age.of.onset, bl_onset$age.of.onset) %>%
-#   View()
-# 16 and 18
+if(with(dat, any(duplicated(paste(Method, id))))){
+  stop("IDs are not unique.")
+}
 
-tira <- tira0 %>%
-  rename(age.of.onset.sila = age.of.onset) %>%
-  bind_cols(bl_onset[c(1:15,17,19:22),]) %>%
+# add random ----
+max_pos <- random_time_from_positivity <- dat %>%
+  filter(Method == "SILA") %>%
+  pull(time_from_positivity) %>%
+  max()
+
+set.seed(20260317)
+random_time_from_positivity <- dat %>%
+  filter(Method == "SILA" | id == 53) %>%
+  arrange(Source, Method) %>%
   mutate(
-    time.from.positivity = baseline.age - age.of.positivity,
-    onset_age_diff = age.of.onset.sila - age.of.onset)
-# max(tira$onset_age_diff)
-# which.max(tira$onset_age_diff)
-# ggplot(tira, aes(x=age.of.onset.sila, y=age.of.onset)) + 
-#   geom_point() + geom_abline(slope=1, intercept=0)
+    Method = "Random",
+    time_from_positivity = runif(n(), min = time_from_onset, max = max_pos),
+    ptau217_positivity_age = baseline_plasma_age - time_from_positivity)
+
+# ggplot(random_time_from_positivity,
+#   aes(x=baseline_plasma_age, y=ptau217_positivity_age)) +
+#   geom_point() +
+#   geom_abline(a=0, b=1, linetype='dashed')
+# 
+# ggplot(random_time_from_positivity,
+#   aes(x=ptau217_positivity_age, y=age_of_symptom_onset)) +
+#   geom_point() +
+#   geom_abline(a=0, b=1, linetype='dashed')
+
+dat <- dat %>%
+  bind_rows(random_time_from_positivity) %>%
+  mutate(
+    Source = factor(Source, c('ADNI', 'Knight ADRC')),
+    Method = factor(Method, c('TIRA', 'SILA', 'Random')),
+    time_from_positivity_to_onset = age_of_symptom_onset - ptau217_positivity_age)
+
+# ggplot(dat, aes(x = baseline_plasma_age, y = ptau217_positivity_age)) +
+#   geom_point() +
+#   facet_grid(Source ~ Method) +
+#   geom_abline(a = 0, b = 1, linetype = 'dashed')
+# 
+# ggplot(dat, aes(x = ptau217_positivity_age, y = age_of_symptom_onset)) +
+#   geom_point() +
+#   facet_grid(Source ~ Method) +
+#   geom_abline(a = 0, b = 1, linetype = 'dashed')
+
+save(dat, file = 'petersen-tira-sila.rdata')
 ```
 
-```{r combine-scraped-data}
-set.seed(20260317)
-dat <- bind_rows(
-  tira %>% mutate(Method = 'TIRA'),
-  sila %>% mutate(Method = 'SILA'),
-  sila %>% mutate(
-    Method = 'Random', 
-    # Target Unif(-8,21), flipped direction from earlier draft
-    time.from.positivity = -runif(n=nrow(sila), -21, 8),
-    age.of.positivity = baseline.age - time.from.positivity)) %>%
-  mutate(Method = factor(Method, c('TIRA', 'SILA', 'Random')))
+```{r load-scraped-data}
+load('petersen-tira-sila.rdata')
+
+max_pos <- random_time_from_positivity <- dat %>%
+  filter(Method == "SILA") %>%
+  pull(time_from_positivity) %>%
+  max()
 
 dat_long <- dat %>%
   pivot_longer(
-    cols = c(baseline.age, time.from.positivity, age.of.positivity),
+    cols = c(baseline_plasma_age, time_from_positivity, 
+      ptau217_positivity_age, baseline_plasma),
     names_to = "panel",
     values_to = "x") %>%
   mutate(
-    y = age.of.onset,
+    y = age_of_symptom_onset,
     panel = factor(
       panel,
-      levels = c("baseline.age", "time.from.positivity", "age.of.positivity"),
-      labels = c("Baseline age (yrs)", "Estimated time from %p-tau217 positivity (yrs)", 
+      levels = c("baseline_plasma_age", "time_from_positivity",
+        "ptau217_positivity_age"),
+      labels = c("Baseline age (yrs)", 
+        "Estimated time from %p-tau217 positivity (yrs)", 
         "Estimated age at %p-tau217 positivity (yrs)")))
 ```
 
 ```{r panel-stats}
-panel_stats <- dat_long %>%
-  group_by(panel, Method) %>%
-  summarise(
-    N   = sum(complete.cases(x, y)),
-    rho = cor(x, y, method = "spearman", use = "complete.obs"),
-    fit = list(lm(y ~ x)),
-    beta   = sapply(fit, function(m) coef(m)[2]),
-    alpha  = sapply(fit, function(m) coef(m)[1]),
-    adjR2  = sapply(fit, function(m) summary(m)$adj.r.squared),
-    x_min = min(x, na.rm = TRUE),    
-    x_max = max(x, na.rm = TRUE),    
-    y_min = min(y, na.rm = TRUE),    
-    y_max = max(y, na.rm = TRUE)) %>%
-  mutate(row_id = row_number()) %>%
-  ungroup() %>%
-  mutate(
-    # label = sprintf(
-    #   "paste('beta = ', %.3f, '\nadj. R'^2, ' = ', %.3f, '\nSpearman''s ', rho, ' = ', %.3f, '\nN = ', %d)",
-    #   beta, adjR2, rho, N),
-    # label  = sprintf(
-    #   "paste('y = ', %.2f, 'x+', %.1f, '\nAdjusted R'^2,' = ', %.2f, '\nSpearman \u03c1 = ', %.2f, '\nN = ', %d)",
-    #   beta, alpha, adjR2, rho, N),
-    label  = sprintf(
-      "y = %.2fx + %.1f <br>Adjusted R<sup>2</sup>=%.2f<br>Spearman \u03c1 = %.2f<br>N = %d",
-      beta, alpha, adjR2, rho, N),
-    # place text in upper left
-    x_range = x_max - x_min,
-    y_range = y_max - y_min,
-    x_pos = x_min + 0.02 * x_range,                           # a bit in from left
-    y_pos = y_max - 0.10 * y_range             # spaced downward
-  )
+panel_stats_adni  <- compute_panel_stats(dat_long, "ADNI")
+panel_stats_kadrc <- compute_panel_stats(dat_long, "Knight ADRC")
+seg_data_adni  <- make_seg_data(dat, "ADNI", levels(dat_long$panel))
+seg_data_kadrc <- make_seg_data(dat, "Knight ADRC", levels(dat_long$panel))
+constraint_adni  <- make_constraint(dat_long, "ADNI")
+constraint_kadrc <- make_constraint(dat_long, "Knight ADRC")
 ```
 
-```{r seg-data}
-# make sure panel factor matches the one used in dat_long
-seg_data <- dat %>%
-  mutate(
-    y = age.of.onset,
-    x_start = baseline.age,
-    x_end   = age.of.positivity,
-    panel   = factor("Estimated age at %p-tau217 positivity (yrs)", 
-      levels = levels(dat_long$panel)))
+```{r fig-tira-sila-kadrc, fig.width=8.5, fig.height=8.5}
+#| fig-cap: "Relationships in Knight ADRC between the predicted outcome (age of symptom onset) and three predictors: age at baseline (first plasma visit), estimated time from %p-tau217 positivity, and their difference: baseline age minus estimated time from %p-tau217 positivity (i.e., age of %p-tau217 positivity). Time from %p-tau217 positivity is estimated by the TIRA method (top row), the SILA method (middle row), or by randomly sampling from a uniform distribution over the observed range of estimates (bottom row). Panels include fitted linear regression estimates, summary statistics for each predictor, and a dashed identity line. To illustrate the contribution of time from %p-tau217 positivity (middle column), the rightmost panels show faint gray lines connecting each person's age at baseline to their estimated age of %p-tau217 positivity. The pink regions span the observed window of onset: between 5.7 years before and 16.4 years after baseline."
+
+plot_panels(dat_long, "Knight ADRC", panel_stats_kadrc, seg_data_kadrc, constraint_kadrc, y_pos_override = 120)
 ```
 
-```{r fig-tira-sila, fig.width=8.5, fig.height=8.5}
-#| fig-cap: "Relationships between the predicted outcome (age of symptom onset) and three predictors: age at baseline (first plasma visit, CDR=0), estimated time from %p-tau217 positivity, and their difference: baseline age minus estimated time from %p-tau217 positivity (i.e., age of %p-tau217 positivity). Time from %p-tau217 positivity is estimated by the TIRA method (top row), the SILA method (middle row), or by randomly sampling from a uniform distribution over the observed range of estimates (bottom row). Panels include fitted linear regression estimates, summary statistics for each predictor, and a dashed identity line. To illustrate the contribution of time from %p-tau217 positivity (middle column), the rightmost panels show faint gray lines connecting each person's age at baseline to their estimated age of %p-tau217 positivity. The pink regions span vertically from the age at baseline (identity line) to the maximum observed follow‑up, defined as age at baseline plus 10.4 years. **Note:** Figures and analyses are based on digitized estimates derived from figures available on Alzforum[@alzforum_ptau217_clock] using WebPlotDigitizer.[@WebPlotDigitizer]"
+These data do not suggest that plasma %p-tau217 lacks predictive value; a substantial literature establishes that it is strongly associated with cognitive decline. [@Sperling2024; @insel2025concurrent] What these data show is that the disease clock does not extract additional prognostic information from the biomarker. It degrades information that is already available in the raw measurement. When %p-tau217 was entered into the model directly, as a raw level alongside baseline age, it outperformed the clock-derived predictor in every cohort and clock method (@fig-model-R2). The clock fared worst in the validation cohort, where it fell well below direct inclusion of the raw measurement and, for both methods, was considerably worse than a predictor in which the timing term was replaced with a random number. The same biomarker information that improves prediction when used directly is distorted by the clock measure.
 
-age_range <- filter(dat_long, panel == 'Baseline age (yrs)') %>% 
-  pull(x) %>% range() %>% round()
-obs_range <- filter(dat_long, panel == 'Baseline age (yrs)') %>% mutate(obs = y-x) %>% 
-  pull(obs) %>% range()
-age_pos_range <- filter(dat_long, panel == 'Estimated age at %p-tau217 positivity (yrs)') %>% 
-  pull(x) %>% range() %>% round()
-age_ons_range <- filter(dat_long, panel == 'Estimated age at %p-tau217 positivity (yrs)') %>% 
-  pull(y) %>% range() %>% round()
+```{r fig-model-R2, fig.width=8.5, fig.height=8.5}
+#| fig-cap: "**Model comparison across cohorts and clock methods.** Adjusted R² for four models of age at symptom onset in ADNI (top row) and Knight ADRC (bottom row): baseline age alone (dark), the clock-derived age at %p-tau217 positivity (orange in the SILA column, blue in the TIRA column), a random comparator for age at %p-tau217 positivity drawn uniformly over the observed range (grey), and baseline age together with raw %p-tau217 level (red). Columns correspond to the samples fit with SILA and TIRA. Values above bars show the change in Akaike information criterion (ΔAIC) relative to the baseline-age model in the same panel; negative values indicate improved fit and positive values indicate worse fit. Across cohorts, the clock-derived predictor does not improve on direct inclusion of age and raw %p-tau217."
 
-constraint_ribbon <- 
-  expand_grid(
-    x = age_range[1]:age_range[2], 
-    panel = factor('Baseline age (yrs)', levels = levels(dat_long$panel)), 
-    Method = unique(dat_long$Method)) %>%
-  mutate(y_min = x, y_max = x + obs_range[2], y = NA)
+# Build results table ----
+tab <- NULL
 
-panel_stats$y_pos <- 99
-  
-ggplot(dat_long, aes(x = x, y = y)) +
-  # points
-  geom_point(size = 2.5, alpha = 0.4) +
-  # regression lines with ribbons
-  geom_smooth(method = "lm", se = TRUE, linewidth = 1) +
-  geom_abline(intercept = 0, slope = 1, linetype = 'dashed') +
-  facet_grid(rows = vars(Method), cols = vars(panel), scales = 'free_x',
-    switch = "x") +
-  # grey shift lines in the right panel only
-  geom_segment(
-    data = seg_data,
-    aes(x = x_start, xend = x_end,
-        y = y, yend = y),
-    color = "grey30",
-    alpha = 0.4,
-    inherit.aes = FALSE) +
-  # formatted regression text in the upper left
-  geom_richtext(
-    data = panel_stats,
-    aes(x = x_pos, y = y_pos, label = label),
-    hjust = 0,           # left aligned
-    vjust = 1,           # top of text block
-    lineheight = 1.1,
-    size = 3.5,
-    fill = NA, label.color = NA,
-    show.legend = FALSE) +  # text does not need legend entry
-  geom_ribbon(data = constraint_ribbon, aes(x=x, ymin = y_min, ymax = y_max),
-    alpha = 0.3, fill = "pink") +
+for (src in c("ADNI", "Knight ADRC")) {
+  for (meth in c("SILA", "TIRA")) {
+    
+    df_sub <- dat %>% filter(Source == src, Method == meth)
+    df_sub_rand <- dat %>% filter(Source == src, Method == "Random") %>%
+      filter(id %in% df_sub$id)
+    if(nrow(df_sub) != nrow(df_sub_rand)){
+      stop("random time data is different size")
+    }
+    
+    bl_plasma_age <- lm(age_of_symptom_onset ~ baseline_plasma_age, 
+      data = df_sub)
+    ptau217_positivity_age <- lm(age_of_symptom_onset ~ ptau217_positivity_age, 
+      data = df_sub)
+    rand_ptau217_positivity_age <- lm(age_of_symptom_onset ~ ptau217_positivity_age, 
+      data = df_sub_rand)
+    bl_plasma_age_ptau217 <- lm(age_of_symptom_onset ~ baseline_plasma_age + 
+        baseline_plasma, data = df_sub)
+    
+    mods <- list(
+      "Baseline age" = bl_plasma_age,
+      "Age of %p-tau217 positivity" = ptau217_positivity_age,
+      "Random age of %p-tau217 positivity" = rand_ptau217_positivity_age,
+      "Baseline age + %p-tau217" = bl_plasma_age_ptau217
+    )
+    
+    AIC0 <- AIC(bl_plasma_age)
+    
+    tab <- tab %>% bind_rows(tibble(
+      Source = src,
+      Method = meth,
+      Model = names(mods),
+      R2 = unlist(lapply(mods, function(x) summary(x)$r.squared)),
+      Adj_R2 = unlist(lapply(mods, function(x) summary(x)$adj.r.squared)),
+      AIC = unlist(lapply(mods, function(x) AIC(x))),
+      delta_AIC = unlist(lapply(mods, function(x) AIC(x))) - AIC0
+    ))
+  }
+}
+
+# Set factor order for nicer plotting ----
+tab <- tab %>%
+  mutate(
+    Model.x = factor(Model, levels = c(
+      "Baseline age",
+      "Age of %p-tau217 positivity",
+      "Random age of %p-tau217 positivity",
+      "Baseline age + %p-tau217")),
+    Sample = factor(Method, 
+      levels = c("SILA", "TIRA"), labels = c("SILA Sample", "TIRA Sample")),
+    Model = case_when(
+      Model.x == "Age of %p-tau217 positivity" ~ as.character(Method),
+      TRUE ~ as.character(Model.x)) %>%
+      factor(c("Baseline age", "SILA", "TIRA", "Random", "Baseline age + %p-tau217")),
+    AIC.label = case_when(
+      Model.x == "Baseline age" ~ '',
+      TRUE ~ paste0("(", sprintf("%.1f", delta_AIC), ")")))
+
+# Plot
+p <- ggplot(tab, aes(x = Model.x, y = Adj_R2, fill = Model)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  # Adj R2 labels (inside bars)
+  geom_text(
+    aes(label = sprintf("%.2f", Adj_R2)),
+    vjust = 1.3,
+    color = "white",
+    size = 5) +
+  # Delta AIC labels (above bars)
+  geom_text(
+    aes(label = AIC.label),
+    vjust = -0.5,
+    size = 5) +
+  facet_grid(Source ~ Sample) +
+  scale_y_continuous(
+    limits = c(0, max(tab$Adj_R2, na.rm = TRUE) * 1.15),
+    expand = expansion(mult = c(0, 0.05))) +
   labs(
-    x = "",
-    y = "Age at symptom onset (yrs)",
-    color = "Dataset",
-    title = "") +           # panel title like in your example
+    x = NULL,
+    y = "Adjusted R²") +
   theme_jama() +
   theme(
-    strip.placement = "outside",
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
     strip.text.y = element_text(size = 15),
+    strip.placement = "outside",
     strip.clip = "off",
-    panel.spacing = unit(2, "lines"))
+    panel.spacing = unit(2, "lines")) +
+  scale_fill_manual(values = jama_colors)
+
+p
 ```
 
-To further quantify these relationships, @tbl-commonality presents a commonality analysis[@nimon2008r] partitioning the unique and shared variance between baseline age and the estimated age of %p-tau217 positivity (via SILA, TIRA, or the random comparator) as predictors of age at symptom onset. While a substantial proportion of explained variance is shared between predictors (50% for SILA; 42% for TIRA; 36% for random), the unique contributions differ markedly. Baseline age independently accounts for a large proportion of the variance (44% for SILA; 56% for TIRA; 64% for random), whereas the estimated age of %p-tau217 positivity contributes minimally (6% for SILA; 3% for TIRA; 0.07% for random). These results indicate that nearly all explained variance is either shared with or uniquely attributable to baseline age, with little additional contribution, only 3% to 6%, from the biomarker-derived timing component.
+The same structural mechanism operates in a second analysis presented in the paper, in which time from %p-tau217 positivity to symptom onset is regressed on the estimated age at %p-tau217 positivity (their Supplementary Fig. 6), an analysis in which age does not appear in the outcome. This relocates the structural constraint from baseline age to age at %p-tau217 positivity rather than removing it. Because observed symptom onset in these cohorts falls between roughly 68 and 98 years, the duration is bounded by the age at positivity. An individual estimated to become positive at age 90 can have a duration of at most about 8 years, since onset is essentially never observed beyond 98, whereas an individual estimated to become positive at age 60 must have a duration of at least about 8 years, since onset is essentially never observed before 68. As in the primary analysis, this bound is shown directly by the shaded regions in @fig-supp-fig-6, which mark the range the data are constrained to occupy given the observed span of onset ages. Replacing the clock-derived estimate with baseline age minus a randomly generated time reproduced a negative association of similar magnitude to the SILA and TIRA estimates, confirming that the relationship is driven by the structural dependence of duration on age at positivity rather than by biomarker-derived timing. The authors conclude from this analysis that "the time from %p-tau217 positivity to onset of AD symptoms was markedly shorter in older individuals." This relationship is guaranteed by the bound and predetermined by the design, arising even in the absence of any underlying biological relationship. This second conclusion of the paper is therefore not supported.
 
-```{r tbl-commonality, results = 'asis'}
-#| tbl-colwidths: [30,15,15,15,15]
-#| tbl-cap: "**Commonality analysis results for age of symptom onset across SILA, TIRA, and a random variable.** This table presents the unique and shared variance contributions for baseline age and age of %p-tau217 positivity in predicting onset age. Unique effects represent the variance accounted for by a single predictor, while common effects represent the shared variance attributed to the overlap between predictors. Total and Adjusted $R^2$ on the bottom row are from the linear models with both predictors. **Note:** Analyses are based on digitized estimates derived from figures available on Alzforum[@alzforum_ptau217_clock] using WebPlotDigitizer.[@WebPlotDigitizer]"
+```{r fig-supp-fig-6, fig.width=8.5, fig.height=8.5}
+#| fig-cap: "Relationships between age of symptom onset minus age of %p-tau217 positivity versus age of positivity (TIRA, SILA, or Random). Panels include fitted linear regression estimates, and summary statistics for each. The pink shaded regions show the range of possible values given the observed ages of symptom onset, which span from 68 to 98 years."
 
-results_sila <- commonalityCoefficients(sila, dv = "age.of.onset",
-  ivlist = c("baseline.age", "age.of.positivity"))
-results_tira <- commonalityCoefficients(tira, dv = "age.of.onset",
-  ivlist = c("baseline.age", "age.of.positivity"))
-results_random <- commonalityCoefficients(
-  dat %>% filter(Method == 'Random'), 
-  dv = "age.of.onset", ivlist = c("baseline.age", "age.of.positivity"))
+age_pos_range <- filter(dat_long, Source == 'Knight ADRC', 
+  panel == 'Estimated age at %p-tau217 positivity (yrs)') %>% 
+  pull(x) %>% range() %>% round()
 
-# 5. Merge and format for journal-ready output
-final_table <- results_sila$CC %>%
-  as.data.frame() %>%
-  rownames_to_column('Effect') %>%
-  bind_rows(tibble(
-    Effect = 'Adj. $R^2$', 
-    Coefficient = summary(lm(age.of.onset ~ baseline.age + age.of.positivity, 
-      data = sila))$adj.r.squared)) %>%
-  bind_cols(results_tira$CC %>%
-      as_tibble() %>%
-      bind_rows(tibble(
-        Coefficient = summary(lm(age.of.onset ~ baseline.age + age.of.positivity, 
-          data = tira))$adj.r.squared))) %>%
-  bind_cols(results_random$CC %>%
-      as_tibble() %>%
-      bind_rows(tibble(
-        Coefficient = summary(lm(age.of.onset ~ baseline.age + age.of.positivity, 
-          data = dat %>% filter(Method == 'Random')))$adj.r.squared)))
+age_ons_range <- filter(dat_long, Source == 'Knight ADRC', 
+  panel == 'Estimated age at %p-tau217 positivity (yrs)') %>% 
+  pull(y) %>% range() %>% round()
 
-
-header_df <- data.frame(
-  col_keys = c("Effect", "SILA_R2", "SILA_Total", "TIRA_R2", "TIRA_Total", "Rand_R2", "Rand_Total"),
-  line1 = c("", rep("SILA", 2), rep("TIRA", 2), rep("Random", 2)),
-  line2 = c("Effect", rep(c("R^2", "% Total"), 3))
-)
-
-colnames(final_table) <- header_df$col_keys
-
-std_border <- fp_border(color = "black", width = 1)
-big_border <- fp_border(color="black", width = 2)   # Top/Bottom
-std_border <- fp_border(color="black", width = 1)   # Under headers
-
-ft <- final_table %>%
-  mutate(
-    Effect = gsub("baseline.age, and age.of.positivity", "both", Effect),
-    Effect = gsub("baseline.age", "baseline age", Effect),
-    Effect = gsub("age.of.positivity", "age of %p-tau217 positivity", Effect),
-    Effect = gsub("Total", "Total $R^2$", Effect)) %>%
-  flextable() %>%
-  set_header_df(mapping = header_df, key = "col_keys") %>%
-  merge_h(part = "header") %>%
-  mk_par(i = 2, j = c(2, 4, 6), part = "header",
-    value = as_paragraph(as_equation("R^2"))) %>%
-  mk_par(i = 4, j = 1, part = "body",
-    value = as_paragraph("Total ", as_equation("R^2"))) %>%
-  mk_par(i = 5, j = 1, part = "body",
-    value = as_paragraph("Adj. ", as_equation("R^2"))) %>%
-  theme_zebra(
-    odd_body = "#F9F9F9",   # Light grey for odd rows
-    even_body = "transparent") %>% # White/transparent for even rows
-  # Additional styling to match your Kable request
-  theme_booktabs() %>%
-  border_remove() %>%
-  hline_top(part = "all", border = big_border) %>%
-  hline_bottom(part = "body", border = big_border) %>%
-  hline(i = 1, part = "header", border = std_border) %>%
-  hline(i = 2, part = "header", border = std_border) %>%
-  hline(i = 3, part = "body", border = std_border) %>%
-  # Adds a vertical line to the RIGHT of columns
-  vline(j = c(3, 5), border = std_border, part = "all") %>%
-  padding(padding.top = 4, padding.bottom = 4, part = "all") %>%
-  italic(j = 1, part = "body") %>%
-  font(fontname = "Times New Roman", part = "all") %>%
-  fontsize(size = 10, part = "all") %>%
-  set_table_properties(layout = "autofit", width = 1) %>%
-  colformat_double(digits = 2) %>%
-  align(align = "center", part = "all") %>%
-  align(j = 1, align = "left", part = "all")
-
-ft
-```
-
-The authors have also highlighted analyses that exclude age from the outcome. However, this does not remove the structural issue; rather, it shifts the source of the constraint from baseline age to age at %p-tau217 positivity. In Supplementary Figure 6, the analysis is framed as regressing time from %p-tau217 positivity to symptom onset on the estimated age at %p-tau217 positivity. The quantity that induces the artifact depends on how the outcome is defined. When the outcome is age at symptom onset, it is constrained by baseline age, and baseline age therefore induces the structural association, as shown above. If the outcome is instead the time from %p-tau217 positivity to symptom onset (i.e., duration of %p-tau217 positivity), then the constraint shifts to age at %p-tau217 positivity. Consider someone who becomes %p-tau217 positive at age 90: their duration of %p-tau217 positivity cannot be 15 years, since this would imply an age of 105, which is not observed in the data. Similarly, someone who becomes %p-tau217 positive at age 60 cannot have very short durations, since symptom onset must occur at the observed age range of the cohort. Thus, age at p-tau positivity tightly constrains the possible values of duration, and regressing duration on age at %p-tau217 positivity induces a strong negative association, with older ages at positivity associated with shorter durations, even in the absence of a true underlying relationship. This is the same structural mechanism described above, now operating through age at %p-tau217 positivity rather than baseline age.
-
-In our analysis (@fig-supp-fig-6), when the estimated age of %p-tau217 positivity is replaced with age at baseline minus the randomly generated time from %p-tau217 positivity, the $R^2$ increases from 0.57 (TIRA) or 0.39 (SILA) to 0.68 (random). This shows that the magnitude of the association in Supplementary Fig. 6 can be reproduced using a predictor that contains no biomarker information, indicating that the observed relationship is driven by the structural dependence of the outcome on the predictor, rather than by the clock-estimated time to %p-tau217 positivity. This structural dependence is represented by the pink regions which show where the data must lie given that the observed ages of symptom onset occur between 69 to 94 years.
-
-```{r fig-supp-fig-6, fig.width=8.5, fig.height=4.25}
-#| fig-cap: "Relationships between age of symptom onset minus age of %p-tau217 positivity versus age of positivity (TIRA, SILA, or Random). Panels include fitted linear regression estimates, and summary statistics for each. The pink shaded regions show the range of possible values given the observed ages of symptom onset, which span from 69 to 94 years. **Note:** Figures and analyses are based on digitized estimates derived from figures available on Alzforum[@alzforum_ptau217_clock] using WebPlotDigitizer[@WebPlotDigitizer]."
-
-dat <- dat %>%
-  mutate(
-    time.from.positivity.to.onset = age.of.onset - age.of.positivity)
-
-constraint_ribbon <- 
+constraint_ribbon_kadrc <- 
   expand_grid(
     x = age_pos_range[1]:age_pos_range[2], 
     Method = unique(dat_long$Method)) %>%
   mutate(
+    Source = 'Knight ADRC',
     y_min = age_ons_range[1] - x, 
-    y_max = age_ons_range[2] - x, time.from.positivity.to.onset = NA)
+    y_max = age_ons_range[2] - x, time_from_positivity_to_onset = NA_real_)
+
+age_pos_range <- filter(dat_long, Source == 'ADNI', 
+  panel == 'Estimated age at %p-tau217 positivity (yrs)') %>% 
+  pull(x) %>% range() %>% round()
+
+constraint_ribbon_adni <- 
+  expand_grid(
+    x = age_pos_range[1]:age_pos_range[2], 
+    Method = unique(dat_long$Method)) %>%
+  mutate(
+    Source = 'ADNI',
+    y_min = age_ons_range[1] - x, 
+    y_max = age_ons_range[2] - x, time_from_positivity_to_onset = NA_real_)
+
+constraint_ribbon <- bind_rows(constraint_ribbon_kadrc, constraint_ribbon_adni)
 
 # p1_stats----
 p1_stats <- dat %>%
-  mutate(x = age.of.positivity, y = time.from.positivity.to.onset) %>%
-  group_by(Method) %>%
+  mutate(x = ptau217_positivity_age, y = time_from_positivity_to_onset) %>%
+  group_by(Source, Method) %>%
   summarise(
     N   = sum(complete.cases(x, y)),
     rho = cor(x, y, method = "spearman", use = "complete.obs"),
@@ -447,12 +428,12 @@ p1_stats <- dat %>%
     y_pos = y_max - 0.05 * y_range             # spaced downward
   )
 
-p1_stats$y_pos <- 40
+p1_stats$y_pos <- 45
 
-ggplot(dat, aes(x = age.of.positivity, y = time.from.positivity.to.onset)) +
+ggplot(dat, aes(x = ptau217_positivity_age, y = time_from_positivity_to_onset)) +
   geom_point(size = 2.5, alpha = 0.4) +
   geom_smooth(method = 'lm') +
-  facet_grid(cols=vars(Method)) +
+  facet_grid(cols=vars(Method), rows=vars(Source)) +
   geom_richtext(
     data = p1_stats,
     aes(x = x_pos, y = y_pos, label = label),
@@ -468,24 +449,42 @@ ggplot(dat, aes(x = age.of.positivity, y = time.from.positivity.to.onset)) +
   xlab("Estimated age at plasma %p-tau217 positivity (yrs)") +
   theme_jama() +
   theme(
-    strip.text.x = element_text(size = 15))
+    strip.text = element_text(size = 15))
 ```
 
-The survival analyses, and in particular the event time summaries shown in Petersen et al Figure 3b, reflect the same structural issue described above for the duration analysis in Supplementary Figure 6. These summaries are derived from the survival analysis and compare time from %p-tau217 positivity to symptom onset across groups defined by age at %p-tau217 positivity, making them a grouped version of the same duration outcome. Although the full survival analysis includes nonprogressors, the relationship between age at %p-tau217 positivity and time to symptom onset remains subject to the same structural constraints. Individuals who become %p-tau217 positive at older ages necessarily have less remaining observable time before symptom onset, censoring, and competing risks, including death. As a result, duration from %p-tau217 positivity to onset is inherently constrained by %p-tau217 age at positivity. Thus, just as in the duration regression, analyses that summarize time from %p-tau217 positivity to symptom onset as a function of age at %p-tau217 positivity embed this constraint, and shorter observed durations at older ages arise from these structural limits rather than from differences in disease progression.
+The event-time summaries in Petersen et al. (their Figure 3b), which compare time from %p-tau217 positivity to symptom onset across groups defined by age at positivity, are a grouped form of the same duration outcome and are subject to the same constraint. Although the underlying survival analysis appropriately includes nonprogressors and censoring, individuals who become positive at older ages necessarily have less observable time before onset, so the shorter durations seen at older positivity ages partly reflect this structural bound rather than faster disease progression.
 
-Taken together, these analyses demonstrate that combining baseline age with estimated time from %p-tau217 positivity into a single predictor, and plugging it into second-stage analyses of progression within limited follow-up, induces structural dependencies in the data. The resulting associations reflect a mixture of shared age components from constructed variables, bounded follow-up, and structural constraints. Consistent with this, we find that the clock-derived formulation of time from %p-tau217 positivity contributes little independent information in these analyses. This limited contribution likely reflects, in part, the strong modeling assumption that individuals follow a common accumulation trajectory, such that time from %p-tau217 positivity can be inferred from a group-level mean trajectory given a single observation. Under this assumption, variation in individual trajectories is minimized, reducing the potential for the estimated timing component to provide additional predictive value. These structural features, including shared age components, bounded follow up, and constructed variables can produce strong and apparently meaningful relationships even in the absence of biomarker timing information, masking the underlying artifacts and giving the appearance of predictive performance that does not generalize beyond the constrained setting in which it is evaluated. Importantly, these structural issues are not unique to plasma p-tau217 clock models, but are also present in prior work applying similar frameworks to estimate age at amyloid positivity from amyloid PET and relating this quantity to age at symptom onset, as illustrated in Figure 3 in Schindler et al.,[@schindler2021predicting] where the same combination of constructed predictors, shared age components, and restricted follow-up can induce analogous artifacts. Analyses using disease-time "clock" models with these structural features are becoming increasingly common, underscoring the importance of carefully evaluating their statistical properties.[@brown2025temporal]
+Taken together, these analyses demonstrate that the clock-based predictor inherits structural dependence from shared age components and bounded follow-up, producing apparently strong associations with symptom onset even in the absence of biomarker timing information. Because the outcome is constrained by age and the predictor is built from age, the reported R² is largely a product of the design rather than of biomarker signal: it is obtained even when the biomarker component is replaced with a random value, as the random comparator shows throughout. The reported associations can therefore appear strong and biologically meaningful while reflecting little independent biomarker information. Separately, even where the biomarker does carry signal, there is a loss of information under the clock formulation, demonstrated by its poorer predictive performance relative to the raw %p-tau217 level. This loss follows from the clock's central assumption that all individuals follow a common accumulation trajectory, so that time from positivity can be read from a group-level mean given a single measurement — yet individuals do not progress along a shared trajectory, and the subject-level heterogeneity this assumption discards is precisely the information needed to estimate individual timing. These issues are not specific to plasma biomarkers: the same structural features and modeling assumptions arise in amyloid PET clock models[@schindler2021predicting] that relate estimated age at positivity to symptom onset, and such disease-time models are increasingly common, underscoring the need to scrutinize their statistical properties and performance relative to more conventional approaches.
 
-These methodological objections are not intended to dismiss the significance of plasma p-tau217 as a predictor. Indeed, we and others have found it to be a robust predictor of cognitive decline in cognitively unimpaired populations. These analyses have yielded more modest effect sizes, indicating that plasma p-tau217 is associated with subsequent cognitive decline, but with limited precision at the individual level, especially when incorporating plasma p-tau217 changes over time.[@insel2025concurrent] In this same sample of $N=1,629$ cognitively unimpaired (median follow-up six years), a model incorporating baseline p-tau217, hippocampal atrophy, amyloid PET, APOE $\epsilon4$ status, and demographics achieved a cross-validated area under the precision–recall curve (AUPRC) of approximately 70% for discriminating clinical decline from stability.[@li2025divergent]
-
-Notably, 77% of the 1,629 cognitively unimpaired individuals in this cohort remained cognitively stable throughout follow-up. While accuracy metrics can be inflated by focusing only on individuals who decline (a small minority) and ignoring the stable majority, such an approach does not reflect the clinical reality of population screening. Given the clear clinical potential of plasma measures of AD, and the availability of direct-to-consumer p-tau217 measurements, it is critical that scientific research evaluating these tools portrays an accurate representation of what these measurements can and cannot provide.  Rather than assuming that all individuals are on a common declining trajectory, the latent class approach we employed explicitly estimates the probability that an individual will be a progressor.[@proust2017estimation] It is clinically imperative to convey the degree of certainty regarding an individual's trajectory before counseling them on their "clock" under an unsupported assumption of inevitable decline.
+Decomposed, the central claim — that the information in a single blood test can predict the age of symptom onset with clinical trial-level accuracy — collapses. The R² attributed to the blood test was 0.337 to 0.612, but the R² for the blood test alone is 0.01 to 0.02. Establishing genuine predictive value requires performance that exceeds what chronological age and the structure of the analysis already guarantee. Such claims are further inflated by evaluating only the minority who progress while ignoring the stable majority, an approach that does not reflect the clinical reality of population screening. Given the clear clinical potential of plasma measures of AD, and the growing availability of direct-to-consumer p-tau217 testing, it is critical that research evaluating these tools accurately represents what they can and cannot provide. Rather than assuming that all individuals follow a common declining trajectory, approaches that explicitly estimate the probability that an individual will progress convey the uncertainty in that individual's course — which is clinically essential before counseling anyone on a "clock" premised on inevitable decline.
 
 \clearpage
 
 # Data and code availability
 
-To reproduce these analyses, see data and code at GitHub: <https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts>
+See code at GitHub: <https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts>. Data can be requested directly from Schindler, et al.
+
+\newpage
 
 # References {.unnumbered}
 
 ::: {#refs}
+:::
+
+\newpage
+
+# Supplementary Information
+
+::: {#suppfig-tira-sila-adni}
+
+```{r suppfig-tira-sila-adni}
+#| echo: false
+#| fig-width: 8.5
+#| fig-height: 8.5
+
+plot_panels(dat_long, "ADNI", panel_stats_adni, seg_data_adni, constraint_adni, y_pos_override = 99)
+```
+
+Relationships in ADNI between the predicted outcome (age of symptom onset) and three predictors: age at baseline (first plasma visit), estimated time from %p-tau217 positivity, and their difference: baseline age minus estimated time from %p-tau217 positivity (i.e., age of %p-tau217 positivity). Time from %p-tau217 positivity is estimated by the TIRA method (top row), the SILA method (middle row), or by randomly sampling from a uniform distribution over the observed range of estimates (bottom row). Panels include fitted linear regression estimates, summary statistics for each predictor, and a dashed identity line. To illustrate the contribution of time from %p-tau217 positivity (middle column), the rightmost panels show faint gray lines connecting each person's age at baseline to their estimated age of %p-tau217 positivity. The pink regions span the observed window of onset ages: between 2.1 years before and 10.3 years after baseline.
+
 :::
