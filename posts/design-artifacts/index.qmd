@@ -29,10 +29,6 @@ format:
     documentclass: article
     geometry:
       - margin=1in
-  latex:
-    documentclass: article
-    geometry:
-      - margin=1in
   docx: default
 ---
 
