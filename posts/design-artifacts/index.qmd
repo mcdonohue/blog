@@ -14,12 +14,6 @@ crossref:
       reference-prefix: Supplementary Figure S
       space-before-numbering: false
       latex-list-of-description: Supplementary Figure
-    - kind: float
-      key: supptbl
-      latex-env: supptbl
-      reference-prefix: Supplementary Table S
-      space-before-numbering: false
-      latex-list-of-description: Supplementary Table
 format:
   html:
     code-fold: true
@@ -43,9 +37,7 @@ format:
 ::: {.callout-note}
 ## About this post
 
-This post accompanies our preprint, *Predicting the age of Alzheimer's symptom onset from a blood test: evaluating a prognostic claim* (medRxiv, version 2 posted October 7, 2026; [doi:10.64898/2026.03.26.26349230](https://doi.org/10.64898/2026.03.26.26349230)).[@Insel2026] The text follows the preprint, and the R code that produces Figures 1--4 and Supplementary Figures S1--S4 is included below each figure (click **Show code**).
-
-The individual-level data are **not** included in this repository. The progressor data were shared with us by the authors of the original report[@petersen2026] and are available from them on request; ADNI data are available to qualified researchers at <https://adni.loni.usc.edu>. To run this document, place the four files supplied by the original authors in a subfolder named `Petersen progressor subsets/` (see [Data preparation](#data-preparation)).
+This post accompanies our preprint, *Predicting the age of Alzheimer's symptom onset from a blood test: evaluating a prognostic claim* (medRxiv, version 2 posted October 7, 2026; [doi:10.64898/2026.03.26.26349230](https://doi.org/10.64898/2026.03.26.26349230)).[@Insel2026] The text follows the preprint, and the R code that produces Figures 1--6 and Supplementary Figures S1--S4 is included below each figure (click **Show code**). The full source for this post is on GitHub: <https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts>.
 :::
 
 # Abstract
@@ -98,7 +90,7 @@ For the progressor analyses, TIRA and SILA estimates were supplied by the author
 
 ## Clinical measures
 
-Cognitive status was assessed with the Clinical Dementia Rating (CDR). Symptomatic AD was defined as a CDR global score greater than 0 with a diagnosis of an AD syndrome.[@petersen2026] For the survival analyses, participants were required to be cognitively unimpaired (CDR 0) at the qualifying blood draw. Onset was dated to the start of the interval in which impairment occurred, and it had to persist at the last assessment and occur after the estimated age at positivity. Participants who progressed before their estimated age at positivity, or to a non-AD syndrome, were censored at their last unimpaired assessment.
+Cognitive status was assessed with the Clinical Dementia Rating (CDR). Symptomatic AD was defined as a CDR global score greater than 0 with a diagnosis of an AD syndrome.[@petersen2026] For the survival analyses, participants were required to be cognitively unimpaired (CDR 0) at the qualifying blood draw. Onset was dated to the start of the interval in which impairment occurred, and it had to persist at the last assessment and occur after the estimated age at positivity. Participants who progressed before their estimated age at positivity, or to a non-AD syndrome, were censored at their last unimpaired assessment. Clinical syndrome was assessed using the CDR by experienced clinicians blinded to biomarker results.[@petersen2026]
 
 ## Statistical analysis
 
@@ -110,20 +102,31 @@ In the second set, age was removed from the outcome by regressing time from bloo
 
 In the third set, time from positivity to symptom onset (observed age at onset minus estimated age at positivity) was regressed on estimated age at positivity, estimated in the same three ways. Because the outcome is age at onset minus the predictor, the covariance between them equals the covariance between age at onset and the predictor minus the variance of the predictor, and is negative even when the biomarker carries no information.[@zhu2026countdown]
 
-In the fourth set, nonprogressors were included and interval-censored proportional hazards models (icenReg,[@andersonbergman2017icenreg] as in the original report) were fit on two timescales: age, as in the original report, and time from the blood draw or from estimated positivity for participants not yet positive at the draw, which excludes immortal time before an event could be counted.[@suissa2008immortal; @levesque2010immortal] Confidence intervals were obtained by bootstrap resampling (5,000 samples), and individual prediction intervals from the fitted survival curves.
+In the fourth set, nonprogressors were included and interval-censored proportional hazards models (icenReg,[@andersonbergman2017icenreg] as in the original report) were fit on two timescales: age, as in the original report, and time from the blood draw or from estimated positivity for participants not yet positive at the draw, which excludes immortal time before an event could be counted.[@suissa2008immortal; @levesque2010immortal] Confidence intervals were obtained by bootstrap resampling (5,000 samples), and individual prediction intervals from the fitted survival curves. Survival curves are shown until fewer than five participants remained under observation.
 
 In the fifth set, we tested the assumption that individuals at the same %p-tau217 level progress at the same rate. In the ADNI clock-development sample (n=345), participant-specific rates of change were estimated from a linear mixed model with random intercepts and slopes and regressed on %p-tau217 level, using either the observed value at the first plasma collection or the model-based value at the midpoint of follow-up, with uncertainty propagated by resampling (2,000 draws from each participant's conditional distribution of intercept and slope).
 
-::: {.callout-important}
-## Code coverage
-
-The code in this post reproduces the first three sets of analyses (the progressor analyses: Figures 1--4, Supplementary Figures S1--S4, and the null and sensitivity analyses). The survival analyses (fourth set; Figure 5 of the preprint) and the common-trajectory analysis (fifth set; Figure 6 of the preprint) use ADNI data and are summarized in the text only.
-:::
-
 ```{r setup, include=FALSE}
+# The code in this post reproduces all five sets of analyses. The progressor
+# analyses (Figures 1--4, Supplementary Figures S1--S4, and the null and
+# sensitivity analyses) use the data supplied by the original authors. The
+# survival analyses (Figure 5) and the common-trajectory analysis (Figure 6)
+# use ADNI data from the ADNIMERGE2 R package, available to approved ADNI data
+# users; those chunks are skipped if ADNIMERGE2 is not installed.
+
+# The individual-level data are **not** included in this repository. The progressor 
+# data were shared with us by the authors of the original report[@petersen2026] 
+# and are available from them on request; ADNI data are available to qualified 
+# researchers at <https://adni.loni.usc.edu>. To run this document, place the 
+# four files supplied by the original authors in a subfolder named `Petersen 
+# progressor subsets/` (see the data-preparation code below).
+
 library(tidyverse)  # data manipulation and ggplot2
 library(ggtext)     # geom_richtext() for HTML-formatted panel labels
 library(knitr)      # kable() tables and chunk options
+
+# Figures 5 and 6 need ADNIMERGE2 (see the ADNI data chunk below)
+has_adni <- requireNamespace("ADNIMERGE2", quietly = TRUE)
 
 source('tira-sila-helper-functions.R')
 
@@ -151,10 +154,6 @@ opts_chunk$set(
   # (base R's pdf()) drops Greek glyphs, so use cairo_pdf() for LaTeX/PDF
   # output and the default PNG device elsewhere.
   dev = if (knitr::is_latex_output()) "cairo_pdf" else "png")
-```
-
-```{r ggplot-setup}
-#| code-summary: "Show code: plot theme"
 
 # A clean, journal-style ggplot2 theme used for every figure.
 theme_jama <- function(base_size = 10) {
@@ -202,23 +201,21 @@ jama_colors <- c("#374E55", "#DF8F44", "#00A1D5", "#B24745",
   "#79AF97", "#6A6599", "#80796B")
 ```
 
-## Data preparation {#data-preparation}
-
-The original authors supplied four files, one per cohort (Knight ADRC, ADNI) and clock method (TIRA, SILA). Each row is a progressor with the following columns:
-
-| Column | Description |
-|:--|:--|
-| `ID` | Anonymized participant identifier (unique within file only) |
-| `baseline_plasma` | %p-tau217 at the first plasma collection |
-| `baseline_plasma_age` | Age at the first plasma collection (age at blood draw) |
-| `ptau217_positivity_age` | Clock-estimated age at %p-tau217 positivity |
-| `age_of_symptom_onset` | Observed age at symptom onset |
-| `duration` | Supplied interval from positivity to onset (not used; recomputed below) |
-
-From these we derive the clock's blood-test component, estimated time from positivity, by inverting the clock's definition (age at positivity = age at blood draw − time from positivity), and the other intervals used below. We also add a **random comparator**: for every participant, time from positivity is replaced with a draw from a uniform distribution that respects the same design constraints as the real estimates, namely that positivity precedes onset (lower limit) and the largest SILA estimate observed (upper limit). The random comparator therefore has the same shared age component and the same bound as the clock, but contains no biomarker information.
-
 ```{r prepare-data}
 #| code-summary: "Show code: data preparation"
+
+# The original authors supplied four files, one per cohort (Knight ADRC, ADNI) and clock method (TIRA, SILA). Each row is a progressor with the following columns:
+# 
+# | Column | Description |
+# |:--|:--|
+# | `ID` | Anonymized participant identifier (unique within file only) |
+# | `baseline_plasma` | %p-tau217 at the first plasma collection |
+# | `baseline_plasma_age` | Age at the first plasma collection (age at blood draw) |
+# | `ptau217_positivity_age` | Clock-estimated age at %p-tau217 positivity |
+# | `age_of_symptom_onset` | Observed age at symptom onset |
+# | `duration` | Supplied interval from positivity to onset (not used; recomputed below) |
+# 
+# From these we derive the clock's blood-test component, estimated time from positivity, by inverting the clock's definition (age at positivity = age at blood draw − time from positivity), and the other intervals used below. We also add a **random comparator**: for every participant, time from positivity is replaced with a draw from a uniform distribution that respects the same design constraints as the real estimates, namely that positivity precedes onset (lower limit) and the largest SILA estimate observed (upper limit). The random comparator therefore has the same shared age component and the same bound as the clock, but contains no biomarker information.
 
 data_dir <- "Petersen progressor subsets"
 if (!dir.exists(data_dir)) {
@@ -300,7 +297,7 @@ dat_long <- dat %>%
       labels = PANEL_LEVELS))
 ```
 
-```{r sample-sizes}
+```{r sample-sizes, eval = FALSE}
 #| code-summary: "Show code: sample sizes"
 
 # Participants per sample, and how many had symptom onset before the blood draw
@@ -325,7 +322,7 @@ Data provided by the authors comprised participants from the original report who
 
 The ADNI survival sample comprised 200 participants who were cognitively unimpaired at the qualifying blood draw and had a SILA-estimated age at %p-tau217 positivity. Median age at blood draw was 74.1 years, 54.0% were female, median education was 16 years, 27.5% carried at least one APOE ε4 allele, and median follow-up from blood draw was 8.22 years. Thirty progressed to symptomatic AD after their estimated age at %p-tau217 positivity. Seven progressed before their estimated age at positivity and 30 to a non-AD diagnosis; both groups were censored at their last unimpaired assessment. The remaining 133 were unimpaired at their last assessment and were censored at that time. For the analysis with follow-up starting at the blood draw or estimated positivity, 64 participants whose follow-up ended before their estimated age at positivity were excluded, including the 7 who progressed before positivity, leaving 136 participants and 30 events. In 76 of these, follow-up began at the estimated age at positivity.
 
-The analyses that follow model three outcomes: age at symptom onset, time from blood draw to onset, and time from %p-tau217 positivity to onset. Each analysis in the original report contains a shared component: the same quantity enters both the predictor and the outcome, so the two are correlated by construction. All three analyses are also restricted to individuals whose age at symptom onset was greater than their estimated age at positivity. This inclusion rule bounds the outcome, so it cannot take just any value and is confined to a region fixed by the predictor. The rule is the same for every outcome; only the quantity that sets the bound changes. Either feature alone is sufficient to manufacture an association, whether or not the biomarker carries any information.
+The analyses that follow model three outcomes: age at symptom onset, time from blood draw to onset, and time from %p-tau217 positivity to onset. Each analysis in the original report contains a shared component: the same quantity enters both the predictor and the outcome, so the two are correlated by construction. All three analyses are also restricted to individuals whose age at symptom onset was greater than their estimated age at positivity. This inclusion rule bounds the outcome, so it cannot take just any value and is confined to a region fixed by the predictor. The rule is the same for every outcome; only the quantity that sets the bound changes. Either feature alone is sufficient to manufacture an association, whether or not the biomarker carries any information. The shared component and the bound for each outcome are described in the sections that follow.
 
 ## Age at symptom onset: a shared component and a bound
 
@@ -370,12 +367,33 @@ plot_panels(dat_long_tira, "Knight ADRC", panel_stats_kadrc_tira,
   seg_data_kadrc_tira, constraint_kadrc_tira, y_pos_override = 120)
 ```
 
-Incorporating the biomarker timing term through the clock produced some improvement over age alone in Knight ADRC (adjusted R² = 0.60–0.61 vs 0.54; ΔR² = 0.06–0.07). However, this improvement was largely driven by participants whose blood was drawn after symptom onset (7 of 61 for SILA; 8 of 59 for TIRA). These draws came from people who were already cognitively impaired, whereas the analysis is premised on predicting time to symptoms in people who are cognitively unimpaired (CDR 0); for these participants, the clock recovers an onset that has already occurred rather than predicting one. When they were excluded, the clock's advantage over age fell to less than 0.02 for both methods (SILA: adjusted R² = 0.55 for the clock vs 0.54 for age; TIRA: 0.56 for the clock vs 0.55 for age; @supptbl-sensitivity). In ADNI the clock performed worse than age alone (TIRA: adjusted R² = 0.34 for the clock vs 0.71 for age; SILA: 0.47 for the clock vs 0.61 for age) and worse than a random comparator (adjusted R² = 0.56, @suppfig-onset-age-adni), and excluding participants with onset before the draw (3 in each sample) widened the gap (TIRA: 0.33 for the clock vs 0.83 for age; SILA: 0.47 for the clock vs 0.74 for age).
+Incorporating the biomarker timing term through the clock produced some improvement over age alone in Knight ADRC (adjusted R² = 0.60–0.61 vs 0.54; ΔR² = 0.06–0.07). However, this improvement was largely driven by participants whose blood was drawn after symptom onset (7 of 61 for SILA; 8 of 59 for TIRA). These draws came from people who were already cognitively impaired, whereas the analysis is premised on predicting time to symptoms in people who are cognitively unimpaired (CDR 0); for these participants, the clock recovers an onset that has already occurred rather than predicting one. When they were excluded, the clock's advantage over age fell to less than 0.02 for both methods (SILA: adjusted R² = 0.55 for the clock vs 0.54 for age; TIRA: 0.56 for the clock vs 0.55 for age). In ADNI the clock performed worse than age alone (TIRA: adjusted R² = 0.34 for the clock vs 0.71 for age; SILA: 0.47 for the clock vs 0.61 for age) and worse than a random comparator (adjusted R² = 0.56, @suppfig-onset-age-adni), and excluding participants with onset before the draw (3 in each sample) widened the gap (TIRA: 0.33 for the clock vs 0.83 for age; SILA: 0.47 for the clock vs 0.74 for age).
 
-Under the design-constrained null, in which biomarker timing information was replaced by random values, the nominal Type I error rate of the clock was severely inflated (@suppfig-null, @supptbl-null). In Knight ADRC, 100% of simulated analyses produced statistically significant associations (p<0.05), despite the absence of biomarker information; in ADNI, 98.5% were significant. The median null adjusted R² ranged from 0.43 to 0.49, accounting for most of the observed predictive performance: 77 to 82% of the observed adjusted R² in the Knight ADRC analyses and 91 to 141% (greater than 100% indicates worse performance than the median null value) of the observed adjusted R² in ADNI. Thus, the magnitude of the reported associations is largely what would be expected from the study design alone, even when biomarker information is removed, and in the case of ADNI, worse than expected.
+```{r sensitivity}
+#| code-summary: "Show code: excluding participants with onset before the blood draw"
+
+# Repeat the Figure 3 model comparison without participants whose symptom
+# onset preceded the blood draw (time_baseline_to_onset < 0). These
+# participants were already impaired when blood was drawn, so the clock
+# "predicts" an onset that had already occurred. Produces the adjusted R2
+# values quoted in the text for this sensitivity analysis.
+sensitivity <- bind_rows(
+  `All progressors` = fit_model_comparison(dat),
+  `Onset after blood draw` = fit_model_comparison(
+    dat %>% filter(time_baseline_to_onset >= 0)),
+  .id = "Sample") %>%
+  select(Sample, Source, Method, N, Model, Adj_R2) %>%
+  pivot_wider(names_from = Model, values_from = Adj_R2)
+```
+
+Under the design-constrained null, in which biomarker timing information was replaced by random values, the nominal Type I error rate of the clock was severely inflated. In Knight ADRC, 100% of simulated analyses produced statistically significant associations (p<0.05), despite the absence of biomarker information; in ADNI, 98.5% were significant. The median null adjusted R² ranged from 0.43 to 0.49, accounting for most of the observed predictive performance: 77 to 82% of the observed adjusted R² in the Knight ADRC analyses and 91 to 141% (greater than 100% indicates worse performance than the median null value) of the observed adjusted R² in ADNI. Thus, the magnitude of the reported associations is largely what would be expected from the study design alone, even when biomarker information is removed, and in the case of ADNI, worse than expected.
 
 ```{r null-sim}
 #| code-summary: "Show code: design-constrained null simulation"
+
+# Produces the null results quoted above: Type I error (share of null fits
+# with p < 0.05), the median null adjusted R2, and the median null as a
+# percentage of the observed adjusted R2 (`null_summary`).
 
 # For one cohort x method sample, repeatedly replace time from positivity
 # with a random draw that respects the design constraints (positivity
@@ -532,7 +550,7 @@ plot_time_to_onset(
 
 ## Direct use of %p-tau217
 
-When %p-tau217 was entered into the model directly, as a raw level alongside age at blood draw, it outperformed the clock in every cohort and for every clock method (@fig-model-R2). In ADNI, however, raw %p-tau217 added little beyond age at blood draw alone. Excluding participants whose blood was drawn after symptom onset widened the advantage of age and raw %p-tau217 over the clock in Knight ADRC: adjusted R² was 0.67 for age and raw %p-tau217 vs 0.55 for the clock (SILA) and 0.67 for age and raw %p-tau217 vs 0.56 for the clock (TIRA; @supptbl-sensitivity).
+When %p-tau217 was entered into the model directly, as a raw level alongside age at blood draw, it outperformed the clock in every cohort and for every clock method (@fig-model-R2). In ADNI, however, raw %p-tau217 added little beyond age at blood draw alone. Excluding participants whose blood was drawn after symptom onset widened the advantage of age and raw %p-tau217 over the clock in Knight ADRC: adjusted R² was 0.67 for age and raw %p-tau217 vs 0.55 for the clock (SILA) and 0.67 for age and raw %p-tau217 vs 0.56 for the clock (TIRA).
 
 ```{r fig-model-R2, fig.width=8.5, fig.height=8.5}
 #| code-summary: "Show code: Figure 3"
@@ -669,19 +687,417 @@ plot_duration(
 
 ## Survival models on two timescales: age at symptom onset vs time to symptom onset
 
-Including nonprogressors, as in a survival analysis, might be expected to resolve these problems, since the sample is no longer restricted to those who progressed. On the age timescale used in the original report, however, the shared quantity remains: age at blood draw enters both the predictor, estimated age at positivity, and the outcome, age at symptom onset. The bound also remains, because onset is counted as an event only when it occurs after estimated age at positivity. In the ADNI survival sample (n=200; 30 events), a survival analysis with the shared quantity found estimated age at positivity was associated with symptom onset on the age timescale (HR 0.87, 95% CI 0.81 to 0.95, P<0.001; Figure 5a of the preprint).
+Including nonprogressors, as in a survival analysis, might be expected to resolve these problems, since the sample is no longer restricted to those who progressed. On the age timescale used in the original report, however, the shared quantity remains: age at blood draw enters both the predictor, estimated age at positivity, and the outcome, age at symptom onset. The bound also remains, because onset is counted as an event only when it occurs after estimated age at positivity. In the ADNI survival sample (n=200; 30 events), a survival analysis with the shared quantity found estimated age at positivity was associated with symptom onset on the age timescale (HR 0.87, 95% CI 0.81 to 0.95, P<0.001; @fig-survival, panel a).
 
-We then measured time to symptom onset from the blood draw, or from the estimated time of positivity for participants not yet positive at the draw. This removes the shared quantity, because age no longer appears in the outcome; it removes the bound, because no follow-up precedes estimated positivity; and it removes immortal time bias,[@suissa2008immortal; @levesque2010immortal] because follow-up before the blood draw and before estimated positivity, when no event could be counted, is no longer included. On this timescale, estimated age at positivity was not associated with symptom onset (n=136; 30 events; HR 1.02, 95% CI 0.96 to 1.09, P=0.51; Figure 5b of the preprint). The predictor and events are identical in the two analyses.
+We then measured time to symptom onset from the blood draw, or from the estimated time of positivity for participants not yet positive at the draw. This removes the shared quantity, because age no longer appears in the outcome; it removes the bound, because no follow-up precedes estimated positivity; and it removes immortal time bias,[@suissa2008immortal; @levesque2010immortal] because follow-up before the blood draw and before estimated positivity, when no event could be counted, is no longer included. On this timescale, estimated age at positivity was not associated with symptom onset (n=136; 30 events; HR 1.02, 95% CI 0.96 to 1.09, P=0.51; @fig-survival, panel b). The predictor and events are identical in the two analyses.
 
-No participant's 95% prediction interval for time to onset reached an upper limit within follow-up (Figure 5c of the preprint): the model cannot say when, or whether, any individual will develop symptoms.
+No participant's 95% prediction interval for time to onset reached an upper limit within follow-up (@fig-survival, panel c): the model cannot say when, or whether, any individual will develop symptoms.
+```{r adni-data}
+#| code-summary: "Show code: ADNI data (ADNIMERGE2)"
+#| eval: !expr has_adni
+
+# Figures 5 and 6 use ADNI data from the ADNIMERGE2 R package, which ADNI
+# distributes to approved data users (https://adni.loni.usc.edu). The analysis
+# code was written by PSI; only the data loading below is specific to
+# ADNIMERGE2.
+library(ADNIMERGE2)
+library(silaR)     # SILA clock (https://github.com/Betthauser-Neuro-Lab/silaR)
+library(icenReg)   # interval-censored proportional hazards models
+library(lme4)      # linear mixed model for Figure 6
+library(mgcv)      # GAMs for Figure 6
+library(qgam)      # quantile GAMs for the Figure 6 prediction band
+library(patchwork) # multi-panel figures
+
+PTAU_LO  <- 1.06   # lower bound of %p-tau217 range used for clock development
+PTAU_HI  <- 10.45  # upper bound
+PTAU_POS <- 4.06   # positivity threshold (SILA val0)
+SILA_DT  <- 0.25   # SILA integration step (years)
+MIN_SPAN <- 1      # minimum years (rounded to 0.1) between first and last draw
+                   # for clock development
+
+# The preprint used ADNI clinical data downloaded on 10 July 2026. ADNIMERGE2
+# is updated as visits are added, so clinical records dated after that are
+# dropped to reproduce the published sample exactly.
+DATA_CUTOFF <- as.Date("2026-07-10")
+
+# Plasma %p-tau217 (C2N PrecivityAD2, FNIH Biomarker Consortium samples)
+c2n_ptau217 <- FNIHBC_BLOOD_BIOMARKER_TRAJECTORIES %>%
+  filter(PLASMA_BIOMARKER == "C2N_plasma_ptau217_ratio") %>%
+  transmute(RID, ptau_date = as.Date(EXAMDATE),
+    ptau217 = suppressWarnings(as.numeric(TESTVALUE))) %>%
+  filter(!is.na(ptau217))
+
+# Date of birth is recorded as month/year; use the 15th of the month
+demog <- PTDEMOG %>%
+  filter(!is.na(PTDOB)) %>%
+  distinct(RID, .keep_all = TRUE) %>%
+  transmute(RID, dob = as.Date(paste0("15/", PTDOB), "%d/%m/%Y"),
+    PTGENDER, PTEDUCAT)
+
+# APOE genotype as e33, e34, ...
+apoe <- ADSL %>%
+  transmute(RID = as.numeric(SUBJID), apoe = paste0("e", gsub("[^0-9]", "", APOE)))
+
+# Diagnosis etiology: "AD" if MCI or dementia is due to Alzheimer's disease
+dx <- DXSUM %>%
+  filter(as.Date(EXAMDATE) <= DATA_CUTOFF) %>%
+  transmute(RID, VISCODE2,
+    DXMDUE = case_when(DXMDUE == "MCI due to Alzheimer's Disease" ~ "AD",
+                       !is.na(DXMDUE) ~ "Other"),
+    DXDDUE = case_when(DXDDUE == "Dementia due to Alzheimer's Disease" ~ "AD",
+                       !is.na(DXDDUE) ~ "Other")) %>%
+  distinct(RID, VISCODE2, .keep_all = TRUE)
+
+# CDR global and box scores (ADNI codes missing as negative values)
+cdr_secondary <- c("CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE")
+cdr <- CDR %>%
+  filter(!is.na(VISDATE), VISDATE <= DATA_CUTOFF) %>%
+  mutate(across(c(CDGLOBAL, CDMEMORY, all_of(cdr_secondary)),
+    ~ replace(.x, .x < 0, NA))) %>%
+  distinct(RID, VISCODE2, .keep_all = TRUE)
+
+# One row per CDR visit. CDGLOBAL is missing at some visits where box scores
+# were recorded; global CDR > 0 iff memory >= 0.5 or >= 2 secondary boxes
+# >= 0.5 (Washington University scoring rules), so impairment is recoverable.
+adni_visits <- cdr %>%
+  select(RID, VISCODE2, cdr_date = VISDATE, CDGLOBAL, CDMEMORY,
+    all_of(cdr_secondary)) %>%
+  left_join(dx, by = c("RID", "VISCODE2")) %>%
+  inner_join(demog, by = "RID") %>%
+  left_join(apoe, by = "RID") %>%
+  mutate(cdr_impaired = if_else(
+    !is.na(CDGLOBAL), CDGLOBAL > 0,
+    CDMEMORY >= 0.5 | rowSums(across(all_of(cdr_secondary)) >= 0.5) >= 2))
+
+# In-range %p-tau217 values, with years since each participant's first one
+ptau_long <- c2n_ptau217 %>%
+  filter(ptau217 > PTAU_LO, ptau217 < PTAU_HI) %>%
+  group_by(RID) %>%
+  mutate(v0_date = min(ptau_date),
+    ptau_years = round(as.numeric(ptau_date - v0_date) / 365.25, 2)) %>%
+  ungroup() %>%
+  arrange(RID, ptau_years) %>%
+  inner_join(demog %>% select(RID, dob), by = "RID") %>%
+  mutate(age = round(as.numeric(ptau_date - dob) / 365.25, 2))
+
+# Clock development: >= 2 in-range values spanning >= 1 year (n = 345).
+# Clock assignment: >= 1 in-range value.
+draw_span <- ptau_long %>%
+  group_by(RID) %>%
+  summarize(n_draws = n(), span = round(max(ptau_years), 1))
+clock_dev_ids    <- draw_span$RID[draw_span$n_draws >= 2 & draw_span$span >= MIN_SPAN]
+clock_assign_ids <- draw_span$RID
+```
+
+```{r sila-clock}
+#| code-summary: "Show code: SILA clock and survival data"
+#| eval: !expr has_adni
+
+# ---- SILA clock: estimated age at %p-tau217 positivity ----
+res <- sila(
+  ptau_long %>% filter(RID %in% clock_dev_ids) %>%
+    select(subid = RID, age, val = ptau217),
+  dt = SILA_DT, val0 = PTAU_POS, maxi = 200)
+
+# Each participant is placed on the curve by their first in-range value
+sila_est <- sila_estimate(res$tsila,
+    ptau_long %>% filter(RID %in% clock_assign_ids) %>%
+      select(subid = RID, age, val = ptau217),
+    align_event = "first") %>%
+  filter(age == ageref) %>%
+  select(RID = subid, est_age_pos = estaget0)
+
+# Origin = first in-range blood draw; one row per CDR visit on or after it
+ptau_base <- ptau_long %>%
+  group_by(RID) %>%
+  slice_min(age, n = 1) %>%
+  ungroup() %>%
+  select(RID, v0_date, age_v0 = age) %>%
+  inner_join(sila_est, by = "RID")
+
+visits_ptau <- adni_visits %>%
+  inner_join(ptau_base, by = "RID") %>%
+  filter(cdr_date >= v0_date) %>%
+  mutate(cdr_age     = round(as.numeric(cdr_date - dob) / 365.25, 1),
+         age_v0      = round(age_v0, 1),
+         est_age_pos = round(est_age_pos, 1)) %>%
+  filter(cdr_age >= age_v0 - 0.01)
+
+# ---- Onset definition and interval-censored survival data ----
+sm <- function(x) if (length(x)) max(x) else NA_real_
+sn <- function(x) if (length(x)) min(x) else NA_real_
+
+surv_base <- visits_ptau %>%
+  filter(!is.na(cdr_impaired)) %>%
+  arrange(RID, cdr_age) %>%
+  mutate(imp    = cdr_impaired,
+         imp_ad = imp & coalesce(DXMDUE, DXDDUE) %in% "AD") %>%
+  group_by(RID) %>%
+  summarize(
+    origin_age = first(age_v0), est_age_pos = first(est_age_pos),
+    sex = first(PTGENDER), edu = first(PTEDUCAT), apoe = first(apoe),
+    cu_at_origin = !first(imp), n_visits = n(), last_age = max(cdr_age),
+    imp_at_last = last(imp),
+    # onset = start of the FINAL impaired-AD run; NA unless the last visit
+    # is impaired-AD, so persistence to the last assessment is enforced
+    .lastbad  = sm(cdr_age[!imp_ad]),
+    onset_age = sn(cdr_age[imp_ad & cdr_age > coalesce(.lastbad, -Inf)]),
+    # last cognitively unimpaired assessment before onset
+    pre_onset_age = sm(cdr_age[!imp & cdr_age < coalesce(onset_age, -Inf)]),
+    first_imp_age = sn(cdr_age[imp]),
+    last_cu_age   = sm(cdr_age[!imp & cdr_age < coalesce(first_imp_age, Inf)]),
+    .groups = "drop") %>%
+  # cognitively unimpaired at the qualifying blood draw, with follow-up
+  filter(cu_at_origin, n_visits >= 2) %>%
+  mutate(
+    ad_onset = !is.na(onset_age),
+    bio_neg  = ad_onset & onset_age <= est_age_pos,   # onset before positivity
+    event    = ad_onset & !bio_neg,
+    # non-AD syndrome, or AD syndrome with onset preceding estimated
+    # positivity: censored at the last cognitively unimpaired assessment
+    cens_imp = bio_neg | (!ad_onset & !is.na(first_imp_age) & imp_at_last),
+    # interval for onset, in years from the blood draw (R = Inf if censored)
+    L = pmax(case_when(event    ~ pre_onset_age - origin_age,
+                       cens_imp ~ coalesce(last_cu_age, origin_age) - origin_age,
+                       TRUE     ~ last_age - origin_age), 0),
+    R = if_else(event, onset_age - origin_age, Inf),
+    L_age = origin_age + L,
+    R_age = origin_age + R)
+
+# Timescale (b): at-risk time starts at the later of the blood draw and the
+# estimated age at positivity; participants whose follow-up ended before
+# estimated positivity are excluded.
+dat_pos <- surv_base %>%
+  mutate(entry_age = pmax(origin_age, est_age_pos)) %>%
+  filter(if_else(is.finite(R_age), R_age > entry_age, L_age > entry_age)) %>%
+  mutate(L_pos = pmax(L_age - entry_age, 0),
+         R_pos = R_age - entry_age)
+
+# Sample flow and characteristics quoted in the Results
+surv_summary <- with(surv_base, c(
+  n = length(RID), events = sum(event), before_positivity = sum(bio_neg),
+  non_ad = sum(cens_imp & !bio_neg), unimpaired = sum(!cens_imp & !event),
+  median_age = median(origin_age), pct_female = 100 * mean(sex == "Female"),
+  median_educ = median(edu),
+  pct_apoe4 = 100 * mean(apoe %in% c("e24", "e34", "e44")),
+  median_fu = visits_ptau %>% filter(RID %in% surv_base$RID) %>%
+    group_by(RID) %>%
+    summarize(fu = as.numeric(max(cdr_date - v0_date)) / 365.25) %>%
+    pull(fu) %>% median(),
+  n_timescale_b = nrow(dat_pos),
+  start_at_positivity = sum(dat_pos$est_age_pos > dat_pos$origin_age)))
+```
+
+```{r survival-fits}
+#| code-summary: "Show code: survival models"
+#| eval: !expr has_adni
+
+set.seed(20260904)
+# (a) age timescale, as in the original report
+fA <- ic_sp(cbind(L_age, R_age) ~ est_age_pos, data = surv_base,
+  bs_samples = 5000, model = "ph")
+# (b) time from the blood draw or estimated positivity (at-risk time only)
+fC <- ic_sp(cbind(L_pos, R_pos) ~ est_age_pos, data = dat_pos,
+  bs_samples = 5000, model = "ph")
+
+# Hazard ratios per year of estimated age at positivity, with bootstrap CIs
+hazard_ratios <- map_dfr(list(`Age timescale` = fA,
+    `Time from blood draw or positivity` = fC), function(f) tibble(
+  HR = exp(coef(f)), lower = exp(confint(f))[1], upper = exp(confint(f))[2],
+  p = summary(f)$summaryParameters[1, "p"]), .id = "Model")
+```
+
+```{r fig-survival, fig.width=11, fig.height=4}
+#| code-summary: "Show code: Figure 5"
+#| eval: !expr has_adni
+#| fig-cap: "Survival models of symptom onset in the ADNI survival sample. Interval-censored proportional hazards models of estimated age at %p-tau217 positivity (SILA), fit (a) on the age timescale used in the original report (n=200; 30 events) and (b) on time from the blood draw, or from the estimated time of positivity for participants not yet positive at the draw (n=136; 30 events). Curves show predicted survival for estimated positivity ages of 60, 70, 80 and 90 years; the dashed horizontal line marks a survival probability of 0.5. In (b), curves are shown until fewer than five participants remained under observation (dotted vertical line, 11.8 years). (c) 95% prediction intervals for time to symptom onset from the model in (b) for 16 participants, eight with observed onset and eight without, chosen to span the range of estimated positivity ages. Each interval begins at its lower 2.5% limit; arrows extending to the shaded band indicate that no upper limit is reached within follow-up (dotted line). Crosses mark observed onset, and circles mark the last assessment of participants who remained unimpaired."
+
+T_CUT    <- 11.8   # curves in (b) shown until fewer than MIN_RISK remain observed
+MIN_RISK <- 5
+XMAX_C   <- 25     # x extent for panel c
+pos_ages <- c(60, 70, 80, 90)
+surv_cols <- c("#D62728", "#1F77B4", "#2CA02C", "#9467BD")
+
+fu_end <- ifelse(is.finite(dat_pos$R_pos), dat_pos$R_pos, dat_pos$L_pos)
+stopifnot(sum(fu_end >= T_CUT) >= MIN_RISK)
+
+# Predicted survival step functions from the Turnbull intervals, dropping
+# intervals that are unbounded above or end beyond t_cut
+surv_curves <- function(fit, t_cut = Inf) {
+  sc <- getSCurves(fit, newdata = data.frame(est_age_pos = pos_ages))
+  keep <- is.finite(sc$Tbull_ints[, 2]) & sc$Tbull_ints[, 2] <= t_cut + 1e-6
+  map2_dfr(sc$S_curves, pos_ages, function(S, a) {
+    d <- tibble(t = sc$Tbull_ints[keep, 1], S = S[keep])
+    if (is.finite(t_cut)) d <- add_row(d, t = t_cut, S = tail(d$S, 1))
+    mutate(d, pos = factor(a))
+  })
+}
+
+plot_surv <- function(d, xlab, title, subtitle, vline = NULL) {
+  ggplot(d, aes(t, S, color = pos)) +
+    geom_step(linewidth = 0.8) +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    { if (!is.null(vline)) geom_vline(xintercept = vline, linetype = "dotted") } +
+    scale_color_manual(values = surv_cols,
+      labels = sprintf("Positivity age of %g", pos_ages), name = NULL) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(x = xlab, y = "Probability of cognitively unimpaired",
+      title = title, subtitle = subtitle) +
+    theme_jama() +
+    theme(legend.position = "inside", legend.position.inside = c(0.02, 0.02),
+      legend.justification = c(0, 0))
+}
+
+xlab_risk <- "Years from blood draw or estimated positivity"
+p_a <- plot_surv(surv_curves(fA), "Age (years)",
+  "Age at symptom onset", "(spurious age relationship)")
+p_b <- plot_surv(surv_curves(fC, T_CUT), xlab_risk,
+  "Time to symptom onset", "(spurious age relationship removed)", vline = T_CUT) +
+  coord_cartesian(xlim = c(0, 13))
+
+# (c) 8 participants with observed onset within T_CUT and 8 censored,
+# spread across estimated age at positivity
+pick <- function(idx, k) {
+  idx <- idx[order(dat_pos$est_age_pos[idx])]
+  idx[round(seq(1, length(idx), length.out = k))]
+}
+is_event <- is.finite(dat_pos$R_pos)
+sel <- c(pick(which(is_event & dat_pos$R_pos <= T_CUT), 8), pick(which(!is_event), 8))
+samp_c <- dat_pos[sel[order(dat_pos$est_age_pos[sel])], ] %>%
+  mutate(y = row_number(),
+    lower = getFitEsts(fC, newdata = ., p = 0.025),  # lower 2.5% limit
+    F_cut = getFitEsts(fC, newdata = ., q = T_CUT))  # P(onset by T_CUT)
+# No upper 97.5% limit is reached within follow-up for anyone shown
+stopifnot(all(samp_c$F_cut < 0.975))
+
+p_c <- ggplot(samp_c, aes(y = y)) +
+  annotate("rect", xmin = XMAX_C - 3.1, xmax = XMAX_C - 0.1,
+    ymin = 0.5, ymax = nrow(samp_c) + 0.5, fill = "grey93") +
+  annotate("text", x = XMAX_C - 1.6, y = nrow(samp_c) + 1.3,
+    label = "Undefined\nupper bound", size = 2.8) +
+  geom_segment(aes(x = lower, xend = XMAX_C - 1.1, yend = y),
+    arrow = arrow(length = unit(0.12, "cm"), angle = 20), color = "grey25") +
+  geom_point(data = ~ filter(.x, is.finite(R_pos)), aes(x = R_pos),
+    shape = 4, color = "#D62728", size = 2, stroke = 1) +
+  geom_point(data = ~ filter(.x, !is.finite(R_pos)), aes(x = L_pos),
+    shape = 1, color = "grey45", size = 2, stroke = 1) +
+  geom_vline(xintercept = T_CUT, linetype = "dotted") +
+  scale_y_continuous(breaks = samp_c$y, labels = sprintf("%.0f", samp_c$est_age_pos),
+    expand = expansion(add = c(0.5, 1.5))) +
+  coord_cartesian(xlim = c(0, XMAX_C)) +
+  labs(x = xlab_risk, y = "Estimated age at\n%p-tau217 positivity",
+    title = "Individual participant prediction intervals",
+    subtitle = "Crosses: observed onset; circles: nonprogressors") +
+  theme_jama()
+
+p_a + p_b + p_c + plot_annotation(tag_levels = "a")
+```
+
 
 ## Common-trajectory assumption
 
-The clock assumes that individuals with the same %p-tau217 level follow the same trajectory. A single observed %p-tau217 value, the quantity available from one blood test, explained 6% of the between-person variance in the rate of change in the ADNI clock-development sample (adjusted R² 0.06, 95% CI 0.02 to 0.10; Figure 6a of the preprint). Substituting the model-based value at the midpoint of follow-up, which incorporates the participant's own rate of change, raised the explained variance to 17% (adjusted R² 0.17, 95% CI 0.11 to 0.24; Figure 6b of the preprint).
+The clock assumes that individuals with the same %p-tau217 level follow the same trajectory. A single observed %p-tau217 value, the quantity available from one blood test, explained 6% of the between-person variance in the rate of change in the ADNI clock-development sample (adjusted R² 0.06, 95% CI 0.02 to 0.10; @fig-trajectory, panel a). Substituting the model-based value at the midpoint of follow-up, which incorporates the participant's own rate of change, raised the explained variance to 17% (adjusted R² 0.17, 95% CI 0.11 to 0.24; @fig-trajectory, panel b).
 
 Consider two participants, both with a %p-tau217 of 3.0, just below the positivity threshold of 4.06. The 95% prediction interval for their rates at that level runs from below zero to roughly 0.5 per year: one may cross the threshold within a couple of years, while the other may never cross it at all, yet the clock assigns them the same estimated time to positivity.
 
 Under either definition of level, the overwhelming majority of the variance in rate is left unexplained.
+```{r trajectory}
+#| code-summary: "Show code: common-trajectory analysis"
+#| eval: !expr has_adni
+
+# Points: conditional-mean (BLUP) slope per participant.
+# Curve:  GAM mean rate as a function of level, averaged over resamples.
+# Band:   95% prediction interval for an individual's rate at a given level.
+# R2:     mean adjusted R2 across resamples with its 2.5-97.5% interval.
+set.seed(20260901)
+n_draws <- 2000   # resamples of the random effects
+n_pool  <- 200    # resamples pooled for the quantile GAM band
+k_band  <- 5
+
+ptau_rate <- ptau_long %>% filter(RID %in% clock_dev_ids)
+
+# Linear mixed model with random intercepts and slopes in years since the
+# first in-range draw
+fit_lmm <- lmer(ptau217 ~ ptau_years + (1 + ptau_years | RID), data = ptau_rate)
+beta <- fixef(fit_lmm)
+re   <- ranef(fit_lmm, condVar = TRUE)$RID
+pv   <- attr(re, "postVar")       # conditional covariance of each (b0, b1)
+ids  <- rownames(re)
+
+# (a) observed first value; (b) model-based value at the midpoint of follow-up
+ptau_first <- ptau_rate %>% group_by(RID) %>% slice(1) %>%
+  { setNames(.$ptau217, .$RID) } %>% .[ids]
+tmid <- tapply(ptau_rate$ptau_years, ptau_rate$RID,
+  function(t) (min(t) + max(t)) / 2)[ids]
+slope_blup <- beta[2] + re[, 2]
+mid_blup   <- beta[1] + re[, 1] + slope_blup * tmid
+
+# One draw of every participant's (b0, b1) from its conditional distribution
+draw_once <- function() {
+  b <- t(sapply(seq_along(ids), function(i)
+    MASS::mvrnorm(1, mu = as.numeric(re[i, ]), Sigma = pv[, , i])))
+  colnames(b) <- c("b0", "b1")
+  b
+}
+
+# x_fun maps a draw to the panel's level variable; x_obs is what is plotted
+build_panel <- function(x_fun, x_obs) {
+  grid <- seq(min(x_obs), max(x_obs), length.out = 200)
+  out <- replicate(n_draws, {
+    b <- draw_once()
+    slope <- beta[2] + b[, "b1"]
+    x <- x_fun(b, slope)
+    g <- gam(slope ~ s(x))
+    c(r2 = summary(g)$r.sq, predict(g, newdata = data.frame(x = grid)))
+  })
+  pooled <- map_dfr(seq_len(n_pool), function(i) {
+    b <- draw_once()
+    slope <- beta[2] + b[, "b1"]
+    tibble(x = x_fun(b, slope), slope = slope)
+  })
+  q025 <- qgam(slope ~ s(x, k = k_band), data = pooled, qu = 0.025)
+  q975 <- qgam(slope ~ s(x, k = k_band), data = pooled, qu = 0.975)
+  list(
+    curve = tibble(x = grid, fit = rowMeans(out[-1, ]),
+      lo = as.numeric(predict(q025, newdata = data.frame(x = grid))),
+      hi = as.numeric(predict(q975, newdata = data.frame(x = grid)))),
+    points = tibble(x = x_obs, slope = slope_blup),
+    r2 = mean(out[1, ]), r2_ci = quantile(out[1, ], c(0.025, 0.975)))
+}
+
+panelA <- build_panel(function(b, slope) ptau_first, ptau_first)
+panelB <- build_panel(function(b, slope) beta[1] + b[, "b0"] + slope * tmid, mid_blup)
+```
+
+```{r fig-trajectory, fig.width=9, fig.height=4.5}
+#| code-summary: "Show code: Figure 6"
+#| eval: !expr has_adni
+#| fig-cap: "Annual rate of change in plasma %p-tau217 as a function of %p-tau217 level in the ADNI clock-development sample (n=345). Points are participant-specific rates from a linear mixed model with random intercepts and slopes. The curve is the mean rate as a nonlinear function of level, and the shaded band is the 95% prediction interval for an individual's rate. R² is the mean adjusted R² across resamples, with its 2.5th–97.5th percentile interval. In (a), level is the observed value at the first plasma collection, the quantity available from a single blood test. In (b), level is the model-based value at the midpoint of follow-up, which incorporates the participant's own rate of change. The dashed line marks a rate of zero."
+
+panel_labels <- c(a = "a  Observed baseline plasma %p-tau217",
+  b = "b  Estimated %p-tau217 at midpoint of follow-up")
+traj <- list(a = panelA, b = panelB)
+
+curves <- map_dfr(traj, "curve", .id = "panel")
+points <- map_dfr(traj, "points", .id = "panel")
+r2_lab <- imap_dfr(traj, ~ tibble(panel = .y,
+  # numbers are quoted so plotmath keeps trailing zeros (0.10, not 0.1)
+  label = sprintf("R^2 == '%.2f (%.2f–%.2f)'", .x$r2, .x$r2_ci[1], .x$r2_ci[2])))
+
+ggplot(curves, aes(x)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey75", alpha = 0.45) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(data = points, aes(y = slope), color = "darkblue", alpha = 0.4) +
+  geom_line(aes(y = fit), linewidth = 1.2, color = "grey35") +
+  geom_text(data = r2_lab, aes(x = 0.6, y = Inf, label = label),
+    parse = TRUE, hjust = 0, vjust = 1.5) +
+  facet_wrap(~ panel, labeller = as_labeller(panel_labels),
+    strip.position = "bottom") +
+  labs(x = NULL, y = "Annual rate of change in %p-tau217") +
+  theme_jama() +
+  theme(strip.placement = "outside", strip.text = element_text(size = 10))
+```
+
 
 # Discussion
 
@@ -715,11 +1131,21 @@ Predicting clinical change with the accuracy claimed for these clocks is exactly
 
 # Data and code availability
 
-ADNI data are available to qualified researchers at <https://adni.loni.usc.edu>. Knight ADRC progressor data were shared by the authors of the original report and are available from them on request; these data are not included in this repository. Analysis code is available at <https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts>.
+ADNI data are available to qualified researchers at <https://adni.loni.usc.edu>; Figures 5 and 6 use the ADNIMERGE2 R package distributed to approved ADNI data users. Knight ADRC progressor data were shared by the authors of the original report and are available from them on request; these data are not included in this repository. Analysis code is available at <https://github.com/mcdonohue/blog/tree/main/posts/design-artifacts>.
 
 # Acknowledgements
 
 We thank the authors of the original report for sharing the data used in the progressor analyses and for their engagement in discussions of these issues. Data from the Knight Alzheimer Disease Research Center were provided by the authors of the original report and were collected with support from NIA grants P30AG066444, P01AG003991 and P01AG026276. Data collection and sharing for ADNI is funded by the National Institute on Aging (National Institutes of Health Grant U19AG024904); a complete listing of ADNI investigators can be found at <http://adni.loni.usc.edu/wp-content/uploads/how_to_apply/ADNI_Acknowledgement_List.pdf>.
+
+# Declarations
+
+**Competing interests:** MCD reports research support from the National Institute on Aging and Eisai to his institution, and consulting fees from Roche and Therini Bio; his spouse is an employee of Johnson & Johnson. PSI declares no competing interests.
+
+**AI use:** The authors used Claude Opus 5 (Anthropic) for copyediting, wording, and comments on code. All content was reviewed and revised by the authors, who take full responsibility for it.
+
+**Funding:** No specific funding was received for this study.
+
+**Ethical approval:** This study used deidentified data from ADNI and the Knight ADRC, whose protocols were approved by the institutional review boards of all participating sites, with written informed consent from all participants. This secondary analysis of deidentified data did not require additional ethical approval.
 
 \newpage
 
@@ -804,81 +1230,5 @@ plot_duration(
 ```
 
 Time from estimated %p-tau217 positivity to symptom onset (age at symptom onset minus estimated age at positivity) versus estimated age at positivity in Knight ADRC (top row) and ADNI (bottom row), with age at positivity estimated by the TIRA method (left), the SILA method (middle), or as age at blood draw minus a random time drawn uniformly over the observed range of estimates (right). Panels include fitted linear regression lines with 95% confidence bands, the regression equation, adjusted R², Spearman ρ, and N. The pink regions show the values possible given the observed range of ages at symptom onset in each cohort: the older the estimated age at positivity, the shorter the duration can be.
-
-:::
-
-::: {#suppfig-null}
-
-```{r suppfig-null}
-#| code-summary: "Show code: Supplementary Figure S5"
-#| fig-width: 8.5
-#| fig-height: 6
-
-ggplot(null_dist, aes(x = adj_r2)) +
-  geom_histogram(bins = 40, fill = "grey80", color = "white") +
-  geom_vline(
-    data = obs_r2 %>% mutate(Source = factor(Source, levels(null_dist$Source))),
-    aes(xintercept = obs_adj_r2),
-    color = "red", linewidth = 1.2) +
-  facet_grid(Source ~ Method) +
-  xlab("Adjusted R² under design-constrained null") +
-  ylab("Count") +
-  theme_jama()
-```
-
-**Design-constrained null distributions for disease-clock prediction of age at symptom onset.** Histograms show the distribution of adjusted R² values obtained from 10,000 randomizations in which the estimated time from %p-tau217 positivity was replaced with a random value drawn under the same design constraints as the original analysis. For each randomization, age at symptom onset was regressed on the resulting age at %p-tau217 positivity. Red vertical lines indicate the observed adjusted R² values for the SILA and TIRA clock models. The null distributions preserve the bounded follow-up structure and shared age components of the original design while removing biomarker timing information.
-
-:::
-
-::: {#supptbl-null}
-
-```{r supptbl-null}
-#| code-summary: "Show code: Supplementary Table S1"
-
-null_summary %>%
-  arrange(Source, Method) %>%
-  transmute(
-    Source, Method,
-    `Obs Adj R²` = obs_adj_r2,
-    `2.5% Null` = null_lo,
-    `50% Null` = null_median,
-    `97.5% Null` = null_hi,
-    # share of the observed adjusted R2 reproduced by the median null
-    `50% Null / Obs (%)` = null_median / obs_adj_r2 * 100,
-    `Percentile` = percentile * 100,
-    `Empirical p-value` = p_empirical,
-    `Type I error (%)` = `Type I error`) %>%
-  kable(digits = 3)
-```
-
-**Comparison of observed disease-clock performance with a design-constrained null distribution.** For each cohort and clock method, the table reports the observed adjusted R² for predicting age at symptom onset, the median and 95% interval of adjusted R² values obtained from 10,000 design-constrained randomizations, the median null as a percentage of the observed value, the percentile of the observed value within the null distribution, the corresponding empirical two-sided p value, and the Type I error rate (percentage of null analyses with p < 0.05).
-
-:::
-
-::: {#supptbl-sensitivity}
-
-```{r supptbl-sensitivity}
-#| code-summary: "Show code: Supplementary Table S2"
-
-# Repeat the Figure 3 model comparison with and without participants whose
-# symptom onset preceded the blood draw (time_baseline_to_onset < 0). These
-# participants were already impaired when blood was drawn, so the clock
-# "predicts" an onset that had already occurred.
-sensitivity <- bind_rows(
-  `All progressors` = fit_model_comparison(dat),
-  `Onset after blood draw` = fit_model_comparison(
-    dat %>% filter(time_baseline_to_onset >= 0)),
-  .id = "Sample")
-
-sensitivity %>%
-  select(Sample, Source, Method, N, Model, Adj_R2) %>%
-  pivot_wider(names_from = Model, values_from = Adj_R2) %>%
-  mutate(Source = factor(Source, c("Knight ADRC", "ADNI"))) %>%
-  arrange(Source, Method, Sample) %>%
-  select(Source, Method, Sample, N, all_of(MODEL_LEVELS)) %>%
-  kable(digits = 2)
-```
-
-**Sensitivity analysis excluding participants with symptom onset before the blood draw.** Adjusted R² for the four models of age at symptom onset in @fig-model-R2, in all progressors and after excluding participants whose blood was drawn after symptom onset. The random comparator is fit to the same participants as the clock in each row.
 
 :::
